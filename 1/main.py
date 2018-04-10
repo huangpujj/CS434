@@ -14,16 +14,28 @@ def get_data(filename):
     return (features, outputs)
 
 def get_weight(features, outputs):
-    f_transpose_f = np.matmul(np.transpose(features), features)
-    inverse = np.linalg.inv(f_transpose_f)
-    f_transpose_o = np.matmul(np.transpose(features), outputs)
-    weight = np.matmul(inverse, f_transpose_o)
+    f_tf = np.matmul(np.transpose(features), features)  # X_t * X
+    inverse = np.linalg.inv(f_tf)                       # (X_t * X)^-1
+    f_to = np.matmul(np.transpose(features), outputs)   # (X_t * X)^-1 * X_t 
+    weight = np.matmul(inverse, f_to)                   # W = (X_t * X)^-1 * X_t * Y   
+    return weight
+
+def get_sse(weight):
     return weight
 
 # PART 1
 def p1():
     (features, outputs) = get_data('data/housing_train.txt')
     weight = get_weight(features, outputs)
-    print ("PART 1\n\tLearned Weight Vector:\n" + str(weight))
+    print ("\nPART 1\n\tLearned Weight Vector:\n" + str(weight))
+    return weight
 
-p1()
+# PART 2
+def p2(weight):
+    sse = get_sse(weight)
+    print ("\nPART 2\n\t")
+    return weight
+
+weight = p1()
+
+p2(weight)
