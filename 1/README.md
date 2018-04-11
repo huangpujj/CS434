@@ -18,3 +18,5 @@ Execute `main.py` with the command `python main.py`
     - `housing_test.txt`  Dataset for testing
 
 - `main.py`               Contains code/algorithms for Part 1 and Part 2
+
+- `report.pdf`            Assignment Write-up
