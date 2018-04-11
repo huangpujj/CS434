@@ -15,18 +15,16 @@ def get_data(filename):
     (features, outputs) = (np.array(features, dtype=float), np.array(outputs, dtype=float)) # Ensure all values are floats
     return (features, outputs)
 
-def get_weight(features, outputs):
+def weight(features, outputs):
     f_tf = np.matmul(np.transpose(features), features)  # X^T * X
     inverse = np.linalg.inv(f_tf)                       # (X^T * X)^-1
     f_to = np.matmul(np.transpose(features), outputs)   # (X^T * X)^-1 * X^T 
-    weight = np.matmul(inverse, f_to)                   # W = (X^T * X)^-1 * X^T * Y   
-    return weight
+    return np.matmul(inverse, f_to)                     # W = (X^T * X)^-1 * X^T * Y   
 
-def get_sse(features, outputs, weight):                 # E(w) = (y - Xw)_t (y - Xw)
-    sse = np.matmul(np.transpose(outputs - np.matmul(features, weight)), outputs - np.matmul(features, weight))
-    return sse
+def sse(features, outputs, weight):                     # E(w) = (y - Xw)_t (y - Xw)
+    return np.matmul(np.transpose(outputs - np.matmul(features, weight)), outputs - np.matmul(features, weight))
 
-def gen_features_with_value(f, value):
+def add_features(f, value):
     array_with_value = np.transpose(np.full((1, len(f)), value, dtype=float))
     return np.hstack((array_with_value, f))
 
@@ -34,31 +32,31 @@ def gen_features_with_value(f, value):
 (f_train, o_train) = get_data('data/housing_train.txt') # Read training data
 (f_test, o_test) = get_data('data/housing_test.txt')    # Read testing data
 
-w_train = get_weight(f_train, o_train)                  # Get training data weight
-w_test = get_weight(f_test, o_test)                     # Get testing data weight
+w_train = weight(f_train, o_train)                      # Get training data weight
+w_test = weight(f_test, o_test)                         # Get testing data weight
 
-f_dummy_train = gen_features_with_value(f_train, 1)   # Create dummy column for training data and get weight
-w_train_dummy = get_weight(f_dummy_train, o_train)    # Get weight of dummy
+f_dummy_train = add_features(f_train, 1)                # Create dummy column for training data
+w_train_dummy = weight(f_dummy_train, o_train)          # Get weight of dummy
 
-f_dummy_test = gen_features_with_value(f_test, 1)    # Create dummy column for testing data and get weight
+f_dummy_test = add_features(f_test, 1)                  # Create dummy column for testing data
 
-sse_train = get_sse(f_dummy_train, o_train, w_train_dummy)  # Get SSE of training data with dummy and dummy weight
-sse_test = get_sse(f_dummy_test, o_test, w_train_dummy)     # Get SSE of testing data with dummy and dummy weight
+sse_train = sse(f_dummy_train, o_train, w_train_dummy)  # Get SSE of training data with dummy and dummy weight
+sse_test = sse(f_dummy_test, o_test, w_train_dummy)     # Get SSE of testing data with dummy and dummy weight
 
 print ("\n=====================================\n")
 print ("Weight Vector with Dummy Column\n" + str(w_train_dummy))    # Part 1.1
 print ("\nTraining SSE:\t" + str(sse_train))                        # Part 1.2
 print ("Testing SSE:\t" + str(sse_test))                            # Part 1.2
 
-sse_train = get_sse(f_train, o_train, w_train)          # Get SSE of training data with training data weight (no dummy)
-sse_test = get_sse(f_test, o_test, w_train)             # Get SSE of testing data with training data weight  (no dummy)
+sse_train = sse(f_train, o_train, w_train)          # Get SSE of training data with training data weight (no dummy)
+sse_test = sse(f_test, o_test, w_train)             # Get SSE of testing data with training data weight  (no dummy)
 
 print ("\n=====================================\n")
 print ("Weight Vector without Dummy Column\n" + str(w_train))   # Part 3.1 Remove dummy column
 print ("\nTraining SSE:\t" + str(sse_train))                    # Part 3.2
 print ("Testing SSE:\t" + str(sse_test))                        # Part 3.2
 
-random.seed(100)
+random.seed(1)
 # Part 4
 
 
