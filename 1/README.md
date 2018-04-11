@@ -9,7 +9,7 @@ Tested and working on `vm-cs434-1.engr.oregonstate.edu`
     - numpy 1.13.0
 
 ## Instructions
-    Execute `main.py` with the command `python main.py`
+Execute `main.py` with the command `python main.py`
 
 ## Contents
 - `data/`
