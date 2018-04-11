@@ -31,7 +31,10 @@ def add_features(f, value = ""):
         array_with_value = np.transpose(np.full((1, len(f)), value, dtype=float))
     return np.hstack((array_with_value, f))
 
-# main start
+# main
+
+np.random.seed(1)
+
 (f_train, o_train) = get_data('data/housing_train.txt') # Read training data
 (f_test, o_test) = get_data('data/housing_test.txt')    # Read testing data
 
@@ -59,9 +62,21 @@ print ("Weight Vector without Dummy Column\n" + str(w_train))   # Part 3.1 Remov
 print ("\nTraining SSE:\t" + str(sse_train))                    # Part 3.2
 print ("Testing SSE:\t" + str(sse_test))                        # Part 3.2
 
-random.seed(1)
+
 # Part 4
-
-
+# Iterate from adding 2 to 12 random features and print SSE
+print ("\n=====================================\n")
+print("\td\tSSE Training\tSSE Test")
+for d in range(2, 100):
+    n_train_feature = f_train
+    n_test_feature = f_test
+    for j in range(1, d):
+        n_train_feature = add_features(n_train_feature)
+        n_test_feature = add_features(n_test_feature)
+    n_train_weight = weight(n_train_feature, o_train)
+    n_test_weight = weight(n_test_feature, o_test)
+    n_sse_train = sse(n_train_feature, o_train, n_train_weight)
+    n_sse_test = sse(n_test_feature, o_test, n_test_weight)
+    print("\t"+str(d)+"\t"+str(n_sse_train)+"\t"+str(n_sse_test))
 
 print ("\n=====================================\n")
