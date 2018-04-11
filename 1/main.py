@@ -21,11 +21,14 @@ def weight(features, outputs):
     f_to = np.matmul(np.transpose(features), outputs)   # (X^T * X)^-1 * X^T 
     return np.matmul(inverse, f_to)                     # W = (X^T * X)^-1 * X^T * Y   
 
-def sse(features, outputs, weight):                     # E(w) = (y - Xw)_t (y - Xw)
+def sse(features, outputs, weight):                     # E(w) = (y - Xw)^T (y - Xw)
     return np.matmul(np.transpose(outputs - np.matmul(features, weight)), outputs - np.matmul(features, weight))
 
-def add_features(f, value):
-    array_with_value = np.transpose(np.full((1, len(f)), value, dtype=float))
+def add_features(f, value = ""):
+    if value == "":
+        array_with_value = np.transpose(np.random.rand(1, len(f)))
+    else:
+        array_with_value = np.transpose(np.full((1, len(f)), value, dtype=float))
     return np.hstack((array_with_value, f))
 
 # main start
@@ -58,7 +61,6 @@ print ("Testing SSE:\t" + str(sse_test))                        # Part 3.2
 
 random.seed(1)
 # Part 4
-
 
 
 
