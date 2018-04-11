@@ -20,21 +20,37 @@ def get_weight(features, outputs):
     weight = np.matmul(inverse, f_to)                   # W = (X_t * X)^-1 * X_t * Y   
     return weight
 
-def get_sse(weight):
-    return weight
+def get_sse(features, outputs, weight):                 # E(w) = (y - Xw)_t (y - Xw)
+    sse = np.matmul(np.transpose(outputs - np.matmul(features, weight)), outputs - np.matmul(features, weight))
+    return sse
 
 # PART 1
 def p1():
-    (features, outputs) = get_data('data/housing_train.txt')
-    weight = get_weight(features, outputs)
-    print ("\nPART 1\n\tLearned Weight Vector:\n" + str(weight))
-    return weight
+    (features, outputs) = get_data('data/housing_train.txt')    # Read training data
+    weight = get_weight(features, outputs)                      # Get training data weight
+
+    fill_ones = np.ones((1, len(features)), dtype=float)
+    fill_ones_t = np.transpose(fill_ones)
+    weight_with_dummy_vars = get_weight( np.hstack((fill_ones_t, features)), outputs)      
+    
+    print ("\nPART 1")
+    print ("\n\tTraining Weight:\n" + str(weight))
+    print ("\n\tTraining Weight with dummy variables:\n" + str(weight_with_dummy_vars))
 
 # PART 2
 def p2(weight):
-    sse = get_sse(weight)
-    print ("\nPART 2\n\t")
-    return weight
+    (f_train, o_train) = get_data('data/housing_train.txt') # Read training data
+    (f_test, o_test) = get_data('data/housing_test.txt')    # Read testing data
+
+    w_train = get_weight(f_train, o_train)                  # Get training data weight
+    w_test = get_weight(f_test, o_test)                     # Get testing data weight
+
+    sse_train = get_sse(f_train, o_train, w_train)
+    sse_test = get_sse(f_test, o_test, w_test)
+    print ("\nPART 2")
+    print ("\tTesting Weight:\n" + str(w_test))
+    print ("\n\tTraining SSE:\t" + str(sse_train))
+    print ("\tTesting SSE:\t" + str(sse_test))
 
 weight = p1()
 
