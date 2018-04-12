@@ -21,8 +21,9 @@ def weight(features, outputs):
     f_to = np.matmul(np.transpose(features), outputs)   # (X^T * X)^-1 * X^T 
     return np.matmul(inverse, f_to)                     # W = (X^T * X)^-1 * X^T * Y   
 
-def sse(features, outputs, weight):                     # E(w) = (y - Xw)^T (y - Xw)
-    return np.matmul(np.transpose(outputs - np.matmul(features, weight)), outputs - np.matmul(features, weight))
+def ase(features, outputs, weight):                     # E(w) = (y - Xw)^T (y - Xw)
+    sse = np.matmul(np.transpose(outputs - np.matmul(features, weight)), outputs - np.matmul(features, weight))
+    return sse/len(features)                            # ASE = SSE/N, where N = number of rows in dataset
 
 def add_features(f, value = ""):
     if value == "":
@@ -32,9 +33,8 @@ def add_features(f, value = ""):
     return np.hstack((array_with_value, f))
 
 # main
-np.set_printoptions(suppress=True)
-
-np.random.seed(1)
+np.set_printoptions(suppress=True)                      # Turn off scientific notation for CSV
+np.random.seed(1)                                       # Random seed for replication
 
 (f_train, o_train) = get_data('data/housing_train.txt') # Read training data
 (f_test, o_test) = get_data('data/housing_test.txt')    # Read testing data
@@ -47,30 +47,30 @@ w_train_dummy = weight(f_dummy_train, o_train)          # Get weight of dummy
 
 f_dummy_test = add_features(f_test, 1)                  # Create dummy column for testing data
 
-sse_train = sse(f_dummy_train, o_train, w_train_dummy)  # Get SSE of training data with dummy and dummy weight
-sse_test = sse(f_dummy_test, o_test, w_train_dummy)     # Get SSE of testing data with dummy and dummy weight
+ase_train = ase(f_dummy_train, o_train, w_train_dummy)  # Get ASE of training data with dummy and dummy weight
+ase_test = ase(f_dummy_test, o_test, w_train_dummy)     # Get ASE of testing data with dummy and dummy weight
 
 print ("\n=====================================\n")
 print ("Weight Vector with Dummy Column\n" + str(w_train_dummy))    # Part 1.1
-print ("\nTraining SSE:\t" + str(sse_train))                        # Part 1.2
-print ("Testing SSE:\t" + str(sse_test))                            # Part 1.2
+print ("\nTraining ASE:\t" + str(ase_train))                        # Part 1.2
+print ("Testing ASE:\t" + str(ase_test))                            # Part 1.2
 
-sse_train = sse(f_train, o_train, w_train)          # Get SSE of training data with training data weight (no dummy)
-sse_test = sse(f_test, o_test, w_train)             # Get SSE of testing data with training data weight  (no dummy)
+ase_train = ase(f_train, o_train, w_train)          # Get ASE of training data with training data weight (no dummy)
+ase_test = ase(f_test, o_test, w_train)             # Get ASE of testing data with training data weight  (no dummy)
 
 print ("\n=====================================\n")
 print ("Weight Vector without Dummy Column\n" + str(w_train))   # Part 3.1 Remove dummy column
-print ("\nTraining SSE:\t" + str(sse_train))                    # Part 3.2
-print ("Testing SSE:\t" + str(sse_test))                        # Part 3.2
+print ("\nTraining ASE:\t" + str(ase_train))                    # Part 3.2
+print ("Testing ASE:\t" + str(ase_test))                        # Part 3.2
 
 
 # Part 4
-# Iterate from adding 2 to 100 random features and print SSE for training and testing
+# Iterate from adding 2 to 100 random features and print ASE for training and testing
 print ("\n=====================================\n")
-print("\td\tSSE Training\tSSE Test")
-f = open("SSE.csv", 'w+')
-f.write("d,SSE Training,SSE Test\n")
-for d in range(2, 60):
+print("\td\tTraining ASE\tTesting ASE")
+f = open("ase.csv", 'w+')
+f.write("d,Training ASE,Testing ASE\n")
+for d in range(2, 65):
     n_train_feature = f_train
     n_test_feature = f_test
     for j in range(1, d):
@@ -78,9 +78,9 @@ for d in range(2, 60):
         n_test_feature = add_features(n_test_feature)
     n_train_weight = weight(n_train_feature, o_train)
     n_test_weight = weight(n_test_feature, o_test)
-    n_sse_train = sse(n_train_feature, o_train, n_train_weight)
-    n_sse_test = sse(n_test_feature, o_test, n_test_weight)
-    print("\t" + str(d) + "\t" + str(n_sse_train) + "\t" + str(n_sse_test))
-    f.write(str(d) + "," + str(n_sse_train) + "," + str(n_sse_test) + "\n")
+    n_ase_train = ase(n_train_feature, o_train, n_train_weight)
+    n_ase_test = ase(n_test_feature, o_test, n_test_weight)
+    print("\t" + str(d) + "\t" + str(n_ase_train) + "\t" + str(n_ase_test))
+    f.write(str(d) + "," + str(n_ase_train) + "," + str(n_ase_test) + "\n")
 f.close()
 print ("\n=====================================\n")
