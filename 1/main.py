@@ -26,12 +26,13 @@ def sse(features, outputs, weight):                     # E(w) = (y - Xw)^T (y -
 
 def add_features(f, value = ""):
     if value == "":
-        array_with_value = np.transpose(np.random.rand(1, len(f)))
+        array_with_value = np.transpose(np.random.randint(1, 100, size=(1, len(f))))
     else:
         array_with_value = np.transpose(np.full((1, len(f)), value, dtype=float))
     return np.hstack((array_with_value, f))
 
 # main
+np.set_printoptions(suppress=True)
 
 np.random.seed(1)
 
@@ -64,10 +65,12 @@ print ("Testing SSE:\t" + str(sse_test))                        # Part 3.2
 
 
 # Part 4
-# Iterate from adding 2 to 12 random features and print SSE
+# Iterate from adding 2 to 100 random features and print SSE for training and testing
 print ("\n=====================================\n")
 print("\td\tSSE Training\tSSE Test")
-for d in range(2, 100):
+f = open("SSE.csv", 'w+')
+f.write("d,SSE Training,SSE Test\n")
+for d in range(2, 60):
     n_train_feature = f_train
     n_test_feature = f_test
     for j in range(1, d):
@@ -77,6 +80,7 @@ for d in range(2, 100):
     n_test_weight = weight(n_test_feature, o_test)
     n_sse_train = sse(n_train_feature, o_train, n_train_weight)
     n_sse_test = sse(n_test_feature, o_test, n_test_weight)
-    print("\t"+str(d)+"\t"+str(n_sse_train)+"\t"+str(n_sse_test))
-
+    print("\t" + str(d) + "\t" + str(n_sse_train) + "\t" + str(n_sse_test))
+    f.write(str(d) + "," + str(n_sse_train) + "," + str(n_sse_test) + "\n")
+f.close()
 print ("\n=====================================\n")
