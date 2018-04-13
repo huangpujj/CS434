@@ -33,8 +33,9 @@ def add_features(f, value = ""):
     return np.hstack((array_with_value, f))
 
 # main
+seed = 69                                               # Random seed for replication
 np.set_printoptions(suppress=True)                      # Turn off scientific notation for CSV
-np.random.seed(1)                                       # Random seed for replication
+np.random.seed(seed)                                    
 
 (f_train, o_train) = get_data('data/housing_train.txt') # Read training data
 (f_test, o_test) = get_data('data/housing_test.txt')    # Read testing data
@@ -67,19 +68,19 @@ print ("Testing ASE:\t" + str(ase_test))                        # Part 3.2
 # Part 4
 # Iterate from adding 2 to 100 random features and print ASE for training and testing
 print ("\n=====================================\n")
+print ("Random seed: " + str(seed))
 print("\td\tTraining ASE\tTesting ASE")
 f = open("ase.csv", 'w+')
 f.write("d,Training ASE,Testing ASE\n")
-for d in range(2, 65):
+for d in range(2, 100, 2):
     n_train_feature = f_train
     n_test_feature = f_test
     for j in range(1, d):
         n_train_feature = add_features(n_train_feature)
         n_test_feature = add_features(n_test_feature)
     n_train_weight = weight(n_train_feature, o_train)
-    n_test_weight = weight(n_test_feature, o_test)
     n_ase_train = ase(n_train_feature, o_train, n_train_weight)
-    n_ase_test = ase(n_test_feature, o_test, n_test_weight)
+    n_ase_test = ase(n_test_feature, o_test, n_train_weight)
     print("\t" + str(d) + "\t" + str(n_ase_train) + "\t" + str(n_ase_test))
     f.write(str(d) + "," + str(n_ase_train) + "," + str(n_ase_test) + "\n")
 f.close()
