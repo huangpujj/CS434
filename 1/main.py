@@ -16,10 +16,7 @@ def get_data(filename):
     return (features, outputs)
 
 def weight(features, outputs):
-    f_tf = np.transpose(features).dot(features)     # X^T * X
-    inverse = np.linalg.inv(f_tf)                   # (X^T * X)^-1
-    f_to = np.transpose(features).dot(outputs)      # X^T * Y
-    return f_to.dot(inverse)                        # W = (X^T * X)^-1 * X^T * Y   
+    return (np.transpose(features).dot(outputs)).dot(np.linalg.inv(np.transpose(features).dot(features)))   # W = (X^T * X)^-1 * X^T * Y   
 
 def ase(features, outputs, weight):                     # E(w) = (y - Xw)^T (y - Xw)
     sse = (outputs - np.dot(features, weight)).dot(np.transpose(outputs - np.dot(features, weight)))
@@ -108,5 +105,5 @@ def part2():
 
 part1()
 
-#part2()
+part2()
 
