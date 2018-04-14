@@ -16,13 +16,13 @@ def get_data(filename):
     return (features, outputs)
 
 def weight(features, outputs):
-    f_tf = np.matmul(np.transpose(features), features)  # X^T * X
-    inverse = np.linalg.inv(f_tf)                       # (X^T * X)^-1
-    f_to = np.matmul(np.transpose(features), outputs)   # (X^T * X)^-1 * X^T 
-    return np.matmul(inverse, f_to)                     # W = (X^T * X)^-1 * X^T * Y   
+    f_tf = np.transpose(features).dot(features)     # X^T * X
+    inverse = np.linalg.inv(f_tf)                   # (X^T * X)^-1
+    f_to = np.transpose(features).dot(outputs)      # X^T * Y
+    return f_to.dot(inverse)                        # W = (X^T * X)^-1 * X^T * Y   
 
 def ase(features, outputs, weight):                     # E(w) = (y - Xw)^T (y - Xw)
-    sse = np.matmul(np.transpose(outputs - np.matmul(features, weight)), outputs - np.matmul(features, weight))
+    sse = (outputs - np.dot(features, weight)).dot(np.transpose(outputs - np.dot(features, weight)))
     return sse/len(features)                            # ASE = SSE/N, where N = number of rows in dataset
 
 def add_features(f, value = ""):
