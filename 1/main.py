@@ -32,16 +32,6 @@ def add_features(f, value = ""):
         array_with_value = np.transpose(np.full((1, len(f)), value, dtype=float))
     return np.hstack((array_with_value, f))
 
-# Part 2.1 Gradient Descent
-def get_data_csv(filename):
-    rgb = []
-    number = []
-    f = open(filename)
-    for line in f:
-        rgb.append(line.split(",")[0:-1])                      # features in rgb values
-        number.append(line.split(",")[-1].replace("\n",""))    # number they represent
-    return (rgb, number)
-
 def part1():
     seed = 69                                               # Random seed for replication
     np.set_printoptions(suppress=True)                      # Turn off scientific notation for CSV
@@ -89,18 +79,34 @@ def part1():
         n_train_weight = weight(n_train_feature, o_train)
         n_ase_train = ase(n_train_feature, o_train, n_train_weight)
         n_ase_test = ase(n_test_feature, o_test, n_train_weight)
-        print("\t" + str(d) + "\t" + str(n_ase_train) + "\t" + str(n_ase_test))
+        print("\t" + str(d) + "\t" + str(n_ase_train) + "\t" + str(n_ase_test) + "\t" + str(n_test_feature.shape))
         f.write(str(d) + "," + str(n_ase_train) + "," + str(n_ase_test) + "\n")
     f.close()
     print ("\n=====================================\n")
 
+# Part 2.1 Gradient Descent
+def get_data_csv(filename):
+    rgb = []
+    number = []
+    f = open(filename)
+    for line in f:
+        rgb.append(line.split(",")[0:-1])                      # features in rgb values
+        number.append(line.split(",")[-1].replace("\n",""))    # number they represent
+    (rgb, number) = (np.array(rgb, dtype=float), np.array(number, dtype=float)) # Ensure all values are floats
+    return (rgb, number)
+
+def sigmoid(w, f):
+    sigma = []
+    exp = w.dot()
+
+def batch_gradient_descent(f, o, learning_rate):
+    w = np.zeros(f.shape)       # w <- [0, ...,0]
+
 def part2():
-    (rgb, number) = get_data_csv("data/usps-4-9-train.csv")
-    print(str(rgb))
-    print(str(number))
+    (rgb_train, num_train) = get_data_csv("data/usps-4-9-train.csv")
+    (rgb_test, num_test) = get_data_csv("data/usps-4-9-test.csv")
 
+part1()
 
-#part1()
-
-part2()
+#part2()
 
