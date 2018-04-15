@@ -125,7 +125,7 @@ def check(w, f, expected):
             correct += 1
     return float(correct) / float(f.shape[0])
 
-def part2():
+def part2_1():
     itr = 169               # Training iterations
     learning_rate = 1       # Learning Rate
 
@@ -137,7 +137,12 @@ def part2():
     
     batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test)
 
+# Part 2.3
+def part2_3():
+    return
+
 part1()
 
-part2()
+part2_1()
 
+part2_3()
