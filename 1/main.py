@@ -95,11 +95,13 @@ def get_data_csv(filename):
 def sigmoid(w, f):
     return 1.0 / (1.0 + np.exp((-1.0 * np.transpose(w)).dot(f)))                    # 1 / (1 + e^(-w^T x))
 
-def gradient(w, f, o):
+def gradient(w, f, o, lam = 0):
     g = np.zeros(256, dtype=float)
     for i in range(f.shape[0]):
         y_hat = sigmoid(w, f[i])                # Iterate over all features in each row
-        g = g + (float(o[i]) - y_hat) * f[i]    # Reversed on slides
+        if lam != 0:                            # If there is a lamda value then we're doing regularization for Part 2.3
+            y_hat = y_hat + (lam * np.linalg.norm(w, 2)) 
+        g = g + (float(o[i]) - y_hat) * f[i]    # Reversed on slides, does't work for y_hat - o[i]
     return g
 
 def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test):
@@ -107,7 +109,7 @@ def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test)
     print("Iteration\tTraining Accuracy\tTest Accuracy")
     f.write("Iteration,Training Accuracy,Test Accuracy\n")
 
-    w = np.zeros(256, dtype=float) # Initilize w = [0, ...0]
+    w = np.zeros(256, dtype=float)                      # Initilize w = [0, ...0]
     
     for i in range(1, itr):
         g = gradient(w, f_train, o_train)
@@ -117,32 +119,58 @@ def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test)
     
     f.close()
 
-def check(w, f, expected):
+def check(w, f, expected):  # Check predicted values agaist the correct value column and take the ratio of correct / total
     correct = 0
     for i in range(0, f.shape[0]):
         y_hat = sigmoid(w, f[i])
         if np.round(y_hat) == expected[i]:
             correct += 1
-    return float(correct) / float(f.shape[0])
+    return float(correct) / float(f.shape[0])   # Ratio expresses this weight's accuracy
 
 def part2_1():
     itr = 169               # Training iterations
-    learning_rate = 1       # Learning Rate
+    learning_rate = 0.0001       # Learning Rate
 
-    (f_train, o_train) = get_data_csv("data/usps-4-9-train.csv")
-    (f_test, o_test) = get_data_csv("data/usps-4-9-test.csv")
+    (f_train, o_train) = get_data_csv("data/usps-4-9-train.csv")    # Read Training data
+    (f_test, o_test) = get_data_csv("data/usps-4-9-test.csv")       # Read Testing data
     
     f_train = np.divide(f_train, 255)   # Divide by 255 to avoid overflow
     f_test = np.divide(f_test, 255)
     
-    batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test)
+    batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test)    # Perform batch gradient descent
 
-# Part 2.3
+# Part 2.3 L2 Regularization
+
+def L2_regularization(learning_rate, lam, f_train, o_train, f_test, o_test):
+    f = open("L2_regularization.csv", 'w+')
+    print("Lamda\tTraining Accuracy\tTest Accuracy")
+    f.write("Lamda,Training Accuracy,Test Accuracy\n")
+
+    w = np.zeros(256, dtype=float)                      # Initilize w = [0, ...0]
+
+    for i in lam:
+        for j in range(0, 100):
+            g = gradient(w, f_train, o_train, i)
+            w = w + (learning_rate * g)
+        print(str(i) + "\t" + str(check(w, f_train, o_train)) + "\t" + str(check(w, f_test, o_test)))
+        f.write(str(i) + "," + str(check(w, f_train, o_train)) + "," + str(check(w, f_test, o_test)) + "\n")
+
+    f.close()
+
 def part2_3():
-    return
+    learning_rate = 0.000001       # Learning Rate
+    lam = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
 
-part1()
+    (f_train, o_train) = get_data_csv("data/usps-4-9-train.csv")    # Read Training data
+    (f_test, o_test) = get_data_csv("data/usps-4-9-test.csv")       # Read Testing data
 
-part2_1()
+    f_train = np.divide(f_train, 255)   # Divide by 255 to avoid overflow
+    f_test = np.divide(f_test, 255)
+
+    L2_regularization(learning_rate, lam,f_train, o_train, f_test, o_test)
+
+#part1()
+
+#part2_1()
 
 part2_3()
