@@ -46,7 +46,6 @@ def part1():
     ase_train = ase(f_dummy_train, o_train, w_train_dummy)  # Get ASE of training data with dummy and dummy weight
     ase_test = ase(f_dummy_test, o_test, w_train_dummy)     # Get ASE of testing data with dummy and dummy weight
 
-    print ("\n=====================================\n")
     print ("Weight Vector with Dummy Column\n" + str(w_train_dummy))    # Part 1.1.1
     print ("\nTraining ASE:\t" + str(ase_train))                        # Part 1.1.2
     print ("Testing ASE:\t" + str(ase_test))                            # Part 1.1.2
@@ -54,14 +53,13 @@ def part1():
     ase_train = ase(f_train, o_train, w_train)          # Get ASE of training data with training data weight (no dummy)
     ase_test = ase(f_test, o_test, w_train)             # Get ASE of testing data with training data weight  (no dummy)
 
-    print ("\n=====================================\n")
     print ("Weight Vector without Dummy Column\n" + str(w_train))   # Part 1.3.1 Remove dummy column
     print ("\nTraining ASE:\t" + str(ase_train))                    # Part 1.3.2
     print ("Testing ASE:\t" + str(ase_test))                        # Part 1.3.2
 
     # Part 1.4
     # Iterate from adding 2 to 100 random features and print ASE for training and testing
-    print ("\n=====================================\n")
+    print ("\n============== PART 1.4 ==============\n")
     print ("Random seed: " + str(seed))
     print("\td\tTraining ASE\tTesting ASE")
     f = open("ase.csv", 'w+')
@@ -78,7 +76,6 @@ def part1():
         print("\t" + str(d) + "\t" + str(n_ase_train) + "\t" + str(n_ase_test) + "\t" + str(n_test_feature.shape))
         f.write(str(d) + "," + str(n_ase_train) + "," + str(n_ase_test) + "\n")
     f.close()
-    print ("\n=====================================\n")
 
 # Part 2.1 Gradient Descent
 def get_data_csv(filename):
@@ -147,7 +144,7 @@ def L2_regularization(learning_rate, lam, f_train, o_train, f_test, o_test):
 
     for l in lam:
         w = np.zeros(256, dtype=float)                      # Initilize w = [0, ...0]
-        for j in range(0, 60):
+        for j in range(0, 2):
             g = gradient(w, f_train, o_train, l)
             w = w + (learning_rate * g)
         print(str(l) + "\t" + str(check(w, f_train, o_train)) + "\t" + str(check(w, f_test, o_test)))
@@ -157,7 +154,7 @@ def L2_regularization(learning_rate, lam, f_train, o_train, f_test, o_test):
 
 def part2_3():
     learning_rate = 0.000001       # Learning Rate
-    lam = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
+    lam = [-100, -10, 0.001, 0.01, 0.1, 0, 1, 10, 100]
 
     (f_train, o_train) = get_data_csv("data/usps-4-9-train.csv")    # Read Training data
     (f_test, o_test) = get_data_csv("data/usps-4-9-test.csv")       # Read Testing data
@@ -167,8 +164,11 @@ def part2_3():
 
     L2_regularization(learning_rate, lam,f_train, o_train, f_test, o_test)
 
+print ("\n=============== PART 1 ===============\n")
 part1()
 
+print ("\n============== PART 2.1 ==============\n")
 part2_1()
 
+print ("\n============== PART 2.3 ==============\n")
 part2_3()
