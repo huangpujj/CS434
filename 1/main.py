@@ -99,7 +99,7 @@ def gradient(w, f, o):
     g = np.zeros(256, dtype=float)
     for i in range(f.shape[0]):
         y_hat = sigmoid(w, f[i])                # Iterate over all features in each row
-        g = g + (float(o[i]) - y_hat) * f[i]
+        g = g + (float(o[i]) - y_hat) * f[i]    # Reversed on slides
     return g
 
 def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test):
@@ -126,7 +126,7 @@ def check(w, f, expected):
     return float(correct) / float(f.shape[0])
 
 def part2():
-    itr = 175               # Training iterations
+    itr = 169               # Training iterations
     learning_rate = 1       # Learning Rate
 
     (f_train, o_train) = get_data_csv("data/usps-4-9-train.csv")
