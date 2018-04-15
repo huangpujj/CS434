@@ -12,7 +12,7 @@ def get_data(filename):
         features.append(line.split()[0:-1]) # Column 1-13 are features (crime rate, accessibility etc)
         outputs.append(line.split()[-1])    # Column 14 is the goal (median housing value)
     f.close()
-    (features, outputs) = (np.array(features, dtype=float), np.array(outputs, dtype=float)) # Ensure all values are floats
+    (features, outputs) = (np.array(features, dtype=np.float128), np.array(outputs, dtype=np.float128)) # Ensure all values are floats
     return (features, outputs)
 
 def weight(features, outputs):
@@ -26,7 +26,7 @@ def add_features(f, value = ""):
     if value == "":
         array_with_value = np.transpose(np.random.randint(1, 100, size=(1, len(f))))
     else:
-        array_with_value = np.transpose(np.full((1, len(f)), value, dtype=float))
+        array_with_value = np.transpose(np.full((1, len(f)), value, dtype=np.float128))
     return np.hstack((array_with_value, f))
 
 def part1():
@@ -89,18 +89,18 @@ def get_data_csv(filename):
     for line in f:
         rgb.append(line.split(",")[0:-1])                                           # features in rgb values
         number.append([line.split(",")[-1].replace("\n","")])                       # number they represent
-    (rgb, number) = (np.array(rgb, dtype=float), np.array(number, dtype=float))     # Ensure all values are floats
+    (rgb, number) = (np.array(rgb, dtype=np.float128), np.array(number, dtype=np.float128))     # Ensure all values are floats
     return (rgb, number)
 
 def sigmoid(w, f):
     return 1.0 / (1.0 + np.exp((-1.0 * np.transpose(w)).dot(f)))                    # 1 / (1 + e^(-w^T x))
 
 def gradient(w, f, o, lam = 0):
-    g = np.zeros(256, dtype=float)
+    g = np.zeros(256, dtype=np.float128)
     for i in range(f.shape[0]):
         y_hat = sigmoid(w, f[i])                # Iterate over all features in each row
         if lam != 0:                            # If there is a lamda value then we're doing regularization for Part 2.3
-            y_hat = y_hat + (lam * np.linalg.norm(w, 2)) 
+            y_hat = y_hat + (lam * np.linalg.norm(w, 2))
         g = g + (float(o[i]) - y_hat) * f[i]    # Reversed on slides, does't work for y_hat - o[i]
     return g
 
@@ -109,7 +109,7 @@ def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test)
     print("Iteration\tTraining Accuracy\tTest Accuracy")
     f.write("Iteration,Training Accuracy,Test Accuracy\n")
 
-    w = np.zeros(256, dtype=float)                      # Initilize w = [0, ...0]
+    w = np.zeros(256, dtype=np.float128)                      # Initilize w = [0, ...0]
     
     for i in range(1, itr):
         g = gradient(w, f_train, o_train)
@@ -129,7 +129,7 @@ def check(w, f, expected):  # Check predicted values agaist the correct value co
 
 def part2_1():
     itr = 169               # Training iterations
-    learning_rate = 0.0001       # Learning Rate
+    learning_rate = 0.001       # Learning Rate
 
     (f_train, o_train) = get_data_csv("data/usps-4-9-train.csv")    # Read Training data
     (f_test, o_test) = get_data_csv("data/usps-4-9-test.csv")       # Read Testing data
@@ -146,10 +146,10 @@ def L2_regularization(learning_rate, lam, f_train, o_train, f_test, o_test):
     print("Lamda\tTraining Accuracy\tTest Accuracy")
     f.write("Lamda,Training Accuracy,Test Accuracy\n")
 
-    w = np.zeros(256, dtype=float)                      # Initilize w = [0, ...0]
+    w = np.zeros(256, dtype=np.float128)                      # Initilize w = [0, ...0]
 
     for i in lam:
-        for j in range(0, 100):
+        for j in range(0, 60):
             g = gradient(w, f_train, o_train, i)
             w = w + (learning_rate * g)
         print(str(i) + "\t" + str(check(w, f_train, o_train)) + "\t" + str(check(w, f_test, o_test)))
@@ -171,6 +171,6 @@ def part2_3():
 
 #part1()
 
-#part2_1()
+part2_1()
 
 part2_3()
