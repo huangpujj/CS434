@@ -2,7 +2,6 @@
 
 import numpy as np
 import random
-import StringIO
 
 def get_data(filename):
     features = []
