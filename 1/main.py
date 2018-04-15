@@ -30,7 +30,6 @@ def add_features(f, value = ""):
 
 def part1():
     seed = 69                                               # Random seed for replication
-    np.set_printoptions(suppress=True)                      # Turn off scientific notation for CSV
     np.random.seed(seed)                                    
 
     (f_train, o_train) = get_data('data/housing_train.txt') # Read training data
