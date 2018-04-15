@@ -129,7 +129,7 @@ def check(w, f, expected):  # Check predicted values agaist the correct value co
 
 def part2_1():
     itr = 169               # Training iterations
-    learning_rate = 0.001       # Learning Rate
+    learning_rate = 0.0001       # Learning Rate
 
     (f_train, o_train) = get_data_csv("data/usps-4-9-train.csv")    # Read Training data
     (f_test, o_test) = get_data_csv("data/usps-4-9-test.csv")       # Read Testing data
@@ -173,4 +173,4 @@ def part2_3():
 
 part2_1()
 
-part2_3()
+#part2_3()
