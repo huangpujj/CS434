@@ -87,19 +87,19 @@ def get_data_csv(filename):
     number = []
     f = open(filename)
     for line in f:
-        rgb.append(line.split(",")[0:-1])                      # features in rgb values
-        number.append(line.split(",")[-1].replace("\n",""))    # number they represent
-    (rgb, number) = (np.array(rgb, dtype=float), np.array(number, dtype=float)) # Ensure all values are floats
+        rgb.append(line.split(",")[0:-1])                                           # features in rgb values
+        number.append([line.split(",")[-1].replace("\n","")])                       # number they represent
+    (rgb, number) = (np.array(rgb, dtype=float), np.array(number, dtype=float))     # Ensure all values are floats
     return (rgb, number)
 
 def sigmoid(w, f):
-    return 1.0 / (1.0 + np.exp((-1.0 * np.transpose(w)).dot(f))) # 1 / (1 + e^(-w^T x))
+    return 1.0 / (1.0 + np.exp((-1.0 * np.transpose(w)).dot(f)))                    # 1 / (1 + e^(-w^T x))
 
 def gradient(w, f, o):
     g = np.zeros(256, dtype=float)
     for i in range(f.shape[0]):
-        y_hat = sigmoid(w, f[i]) # Iterate over all features in each row
-        g = g + (y_hat - o[i]) * f[i]
+        y_hat = sigmoid(w, f[i])                # Iterate over all features in each row
+        g = g + (float(o[i]) - y_hat) * f[i]
     return g
 
 def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test):
@@ -108,35 +108,36 @@ def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test)
     f.write("Iteration,Training Accuracy,Test Accuracy\n")
 
     w = np.zeros(256, dtype=float) # Initilize w = [0, ...0]
+    
     for i in range(1, itr):
         g = gradient(w, f_train, o_train)
         w = w + (learning_rate * g)
-
         print(str(i) + "\t" + str(check(w, f_train, o_train)) + "\t" + str(check(w, f_test, o_test)))
         f.write(str(i) + "," + str(check(w, f_train, o_train)) + "," + str(check(w, f_test, o_test)) + "\n")
+    
     f.close()
 
-def check(w, f_t, o_t):
+def check(w, f, expected):
     correct = 0
-    for i in range(f_t.shape[1]):
-        y_hat = sigmoid(w, f_t[i])
-        if np.round(y_hat) == o_t[i]:
+    for i in range(0, f.shape[0]):
+        y_hat = sigmoid(w, f[i])
+        if np.round(y_hat) == expected[i]:
             correct += 1
-    return float(correct) / float(f_t.shape[0])
+    return float(correct) / float(f.shape[0])
 
 def part2():
-    itr = 70               # Training iterations
-    learning_rate = 1   # Learning Rate
+    itr = 175               # Training iterations
+    learning_rate = 1       # Learning Rate
 
     (f_train, o_train) = get_data_csv("data/usps-4-9-train.csv")
     (f_test, o_test) = get_data_csv("data/usps-4-9-test.csv")
-
+    
     f_train = np.divide(f_train, 255)   # Divide by 255 to avoid overflow
     f_test = np.divide(f_test, 255)
-
+    
     batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test)
 
-#part1()
+part1()
 
 part2()
 
