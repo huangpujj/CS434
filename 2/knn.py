@@ -60,12 +60,25 @@ def L1O_cross_valid_error(diag_set, feat_set, K):
         predict.append( classify(feat_set[i], np.delete(diag_set, i, axis=0), np.delete(feat_set, i, axis=0), K) )
     return (np.sum(np.abs(predict - diag_set)) / float(2 * len(diag_set))) * 100
 
+
+# --- Main ---
 train_d, train_f = get_data('data/knn_train.csv')     # Get training set data
 test_d, test_f = get_data('data/knn_test.csv')        # Get testing set data
 
-train_f = normalize(train_f)
+train_f = normalize(train_f)                          # Normalize using feature scaling
 test_f = normalize(test_f)
 
+f = open("part1.csv", 'w+')
+
+f.write("K,Training Error,Testing Error,Leave-one-out Cross-validation Error\n")
 print("K\tTraining Error\tTesting Error\tLeave-one-out Cross-validation Error")
-for k in range(1, 53, 2): # K values 1, 3, 5 ... 51
-    print( str(k) + "\t" + str( "{0:.3f}".format(round(knn_error(train_d, train_f, k),3)) ) + "%\t\t" + str( "{0:.3f}".format(round(knn_error(test_d, test_f, k),3)) ) + "%\t\t" + str( "{0:.3f}".format(round(L1O_cross_valid_error(train_d, train_f, k),3)) ) + "%" )
+
+for k in range(1, 80, 2): # K values 1, 3, 5 ... 51
+    train_error = str( "{0:.3f}".format(round(knn_error(train_d, train_f, k),3)) ) + "%"
+    test_error  = str( "{0:.3f}".format(round(knn_error(test_d, test_f, k),3)) )   + "%"
+    L1O_error   = str( "{0:.3f}".format(round(L1O_cross_valid_error(train_d, train_f, k),3)) ) + "%"
+    
+    print( str(k) + "\t" + train_error + "\t\t" + test_error + "\t\t" + L1O_error )
+    f.write( str(k) + "," + train_error + "," + test_error + "," + L1O_error + "\n")
+
+f.close()
