@@ -47,11 +47,18 @@ def classify(feature, diag_set, feat_set, k):
     else:                                           # is also negative. Otherwise assume
         return 1                                    # it's positive
 
-def training_error(diag_set, feat_set, K):
+def knn_error(diag_set, feat_set, K):
     predict = []
     for i in range(len(feat_set)):
         predict.append( classify(feat_set[i], diag_set, feat_set, K) )
-    return np.sum(np.abs(predict - diag_set)) / float(2 * len(diag_set)) * 100
+    return (np.sum(np.abs(predict - diag_set)) / float(2 * len(diag_set))) * 100
+
+# Leave-one-out cross-validation error
+def L1O_cross_valid_error(diag_set, feat_set, K):
+    predict = []
+    for i in range(len(feat_set)):
+        predict.append( classify(feat_set[i], np.delete(diag_set, i, axis=0), np.delete(feat_set, i, axis=0), K) )
+    return (np.sum(np.abs(predict - diag_set)) / float(2 * len(diag_set))) * 100
 
 train_d, train_f = get_data('data/knn_train.csv')     # Get training set data
 test_d, test_f = get_data('data/knn_test.csv')        # Get testing set data
@@ -59,6 +66,6 @@ test_d, test_f = get_data('data/knn_test.csv')        # Get testing set data
 train_f = normalize(train_f)
 test_f = normalize(test_f)
 
+print("K\tTraining Error\tTesting Error\tLeave-one-out Cross-validation Error")
 for k in range(1, 53, 2): # K values 1, 3, 5 ... 51
-    print("\tK = " + str(k))
-    print("\tTraining Error:\t" + str( training_error(train_d, train_f, k) ) + str("%") )
+    print( str(k) + "\t" + str( "{0:.3f}".format(round(knn_error(train_d, train_f, k),3)) ) + "%\t\t" + str( "{0:.3f}".format(round(knn_error(test_d, test_f, k),3)) ) + "%\t\t" + str( "{0:.3f}".format(round(L1O_cross_valid_error(train_d, train_f, k),3)) ) + "%" )
