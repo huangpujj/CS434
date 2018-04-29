@@ -1,4 +1,4 @@
-K,Training Error,Testing Error,Leave-one-out Cross-validation Error
+k,Training Error,Testing Error,Leave-one-out Cross-validation Error
 1,0.000%,6.338%,3.169%
 3,1.761%,4.577%,3.169%
 5,1.761%,5.282%,2.817%
