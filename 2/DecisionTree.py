@@ -1,7 +1,6 @@
 import numpy as np
-import pandas as pd
 import sys
-import pprint
+import csv
 import json
 
 MAJORITY_CLASS_SIZE = 10
@@ -139,22 +138,42 @@ def getError(final, data):
     return 1 - (float(correctness))/len(data)
 
 
+def getalldata(filename):
+    all = []
+    f = open(filename, 'r')
+    for line in f:
+        all.append(line.split(",")[0:])    # Diagnosis in this array
+    f.close()
+    all = np.array(all,dtype=float)
+    return all
+
+
+def getdata(filename):
+    diagnosis = []
+    features = []
+    f = open(filename, 'r')
+    for line in f:
+        diagnosis.append(line.split(",")[0])    # Diagnosis in this array
+        features.append(line.split(",")[1:])  # Features in this array
+    f.close()
+    (diagnosis, features) = (np.array(diagnosis, dtype=float), np.array(features, dtype=float))
+    return diagnosis, features
+
 if __name__ == "__main__":
     if not (int(sys.argv[1]) <= 6 and int(sys.argv[1]) >= 1):
         print("Error: Usage: python DecisionTree.py <1~6>")
         sys.exit(0)
-    train_data = pd.read_csv('./data/knn_train.csv', header=None)
-    test_data = pd.read_csv('./data/knn_test.csv', header=None)
 
-    train = train_data.values
-    test = test_data.values
-    Y = train_data[[train_data.columns[0]]].values
-    X = train_data.drop(train_data.columns[0], axis=1).values
+    Y,X = getdata('./data/knn_train.csv')
+
+    train = getalldata('./data/knn_train.csv')
+    test = getalldata('./data/knn_test.csv')
+    
     
     train = normalize(train)
     test = normalize(test)
     X = normalize(X)
-    set = np.append(X,Y,axis=-1)
+    set = np.column_stack([X,Y])
     final = create_Tree(set, int(sys.argv[1]))
     tree = printTree(final)
     print(tree)

@@ -1,0 +1,105 @@
+{
+    "Column": 27,
+    "Gini": 0.17184764430740285,
+    "Value": 1.0,
+    "left": {
+        "Column": 0,
+        "Gini": 0.12352877659000125,
+        "Value": 1.0,
+        "left": {
+            "Column": 21,
+            "Gini": 0.11197691197691188,
+            "Value": 1.0,
+            "left": {
+                "Column": 28,
+                "Gini": 0.04468557758031437,
+                "Value": 1.0,
+                "left": {
+                    "Column": 1,
+                    "Gini": 0.03353371774424412,
+                    "Value": 1.0,
+                    "left": {
+                        "Column": 29,
+                        "Gini": 0.012432012432012432,
+                        "Value": 1.0,
+                        "left": -1,
+                        "right": -1
+                    },
+                    "right": -1
+                },
+                "right": 1
+            },
+            "right": {
+                "Column": 24,
+                "Gini": 0.28800000000000003,
+                "Value": 1.0,
+                "left": {
+                    "Column": 1,
+                    "Gini": 0.1987878787878789,
+                    "Value": 1.0,
+                    "left": -1,
+                    "right": {
+                        "Column": 8,
+                        "Gini": 0.16042780748663107,
+                        "Value": 1.0,
+                        "left": -1,
+                        "right": -1
+                    }
+                },
+                "right": 1
+            }
+        },
+        "right": 1
+    },
+    "right": {
+        "Column": 22,
+        "Gini": 0.12633689839572193,
+        "Value": 1.0,
+        "left": {
+            "Column": 15,
+            "Gini": 0.24816176470588236,
+            "Value": 1.0,
+            "left": {
+                "Column": 29,
+                "Gini": 0.22569444444444445,
+                "Value": 1.0,
+                "left": {
+                    "Column": 1,
+                    "Gini": 0.34188034188034183,
+                    "Value": 1.0,
+                    "left": {
+                        "Column": 21,
+                        "Gini": 0.4195804195804197,
+                        "Value": 1.0,
+                        "left": 1,
+                        "right": 1
+                    },
+                    "right": 1
+                },
+                "right": {
+                    "Column": 0,
+                    "Gini": 0.0,
+                    "Value": 0.0,
+                    "left": 1,
+                    "right": 1
+                }
+            },
+            "right": -1
+        },
+        "right": {
+            "Column": 0,
+            "Gini": 0.0,
+            "Value": 1.0,
+            "left": 1,
+            "right": {
+                "Column": 0,
+                "Gini": 0.0,
+                "Value": 1.0,
+                "left": 1,
+                "right": 1
+            }
+        }
+    }
+}
+Training Error: 0.6443661971830985
+Testing Error: 0.6091549295774648
