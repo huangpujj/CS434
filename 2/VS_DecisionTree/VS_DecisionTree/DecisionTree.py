@@ -115,7 +115,7 @@ def create_Tree(data, max_depth):
     
 
 def printTree(final):
-    print(json.dumps(final, sort_keys=True, indent=4))
+    return json.dumps(final, sort_keys=True, indent=4)
 
 
 def compare(final, row):
@@ -143,8 +143,8 @@ if __name__ == "__main__":
     if not (int(sys.argv[1]) <= 6 and int(sys.argv[1]) >= 1):
         print("Error: Usage: python DecisionTree.py <1~6>")
         sys.exit(0)
-    train_data = pd.read_csv('knn_train.csv', header=None)
-    test_data = pd.read_csv('knn_test.csv', header=None)
+    train_data = pd.read_csv('./data/knn_train.csv', header=None)
+    test_data = pd.read_csv('./data/knn_test.csv', header=None)
 
     train = train_data.values
     test = test_data.values
@@ -156,8 +156,21 @@ if __name__ == "__main__":
     X = normalize(X)
     set = np.append(X,Y,axis=-1)
     final = create_Tree(set, int(sys.argv[1]))
-    printTree(final)
-    print("Training Error: ", getError(final, train))
-    print("Testing Error: ", getError(final, test))
+    tree = printTree(final)
+    print(tree)
+    Train_error = getError(final, train)
+    Test_error = getError(final, test)
+    print("Training Error: ", Train_error)
+    print("Testing Error: ", Test_error)
+
+    if int(sys.argv[1] == 1):
+        f= open("decision_stump_results.txt", 'w')
+    else:
+        f= open("decision_tree_results.txt", 'w')
+    f.write(str(tree))
+    f.write("\nTraining Error: "+str(Train_error))
+    f.write("\nTesting Error: "+str(Test_error))
+
+
     
    

@@ -12,7 +12,7 @@
     <Name>VS_DecisionTree</Name>
     <RootNamespace>VS_DecisionTree</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>3</CommandLineArguments>
+    <CommandLineArguments>6</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
