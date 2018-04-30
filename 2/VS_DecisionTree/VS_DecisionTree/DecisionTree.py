@@ -75,12 +75,13 @@ def find_Majority_Class(node):
     ones = Y.count(1)
     neg_ones = Y.count(-1)
     if neg_ones > ones:
-        return neg_ones
+        return -1
     else:
-        return ones
+        return 1
         
 
 def build_Tree(curr, current_depth, max_depth):
+    
     left_node = curr['Left']
     right_node = curr['Right']
     del(curr['Left'])
