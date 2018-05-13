@@ -37,7 +37,9 @@ class Network(nn.Module):
 	
 model = Network()
 
-optimizer = None	# Fill this in with a method from torch.optim
+learnRate = 0.01	# Change this value to change learning rates
+
+optimizer = opt.SGD(model.parameters(), lr = learnRate, momentum = 0.5)	# what does momentum do?
 
 # train on data
 def train(epoch, logInterval = None):
