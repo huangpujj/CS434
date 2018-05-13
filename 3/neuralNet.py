@@ -19,11 +19,19 @@ batchSize = 32	# Might need to be changed later
 trainLoader = torch.utils.data.DataLoader()	# fill in params
 validationLoader = torch.utils.data.DataLoader() #fill in params
 
-# Might not want to use nn?
+# https://pytorch.org/docs/master/nn.html
 class Network(nn.Module):
 	def __init__(self):
-	
-	def forward(self x):
+		super(Network, self).__init__()
+		self.fc1 = nn.Linear(32*32, 100)	# Hidden layer
+		self.fc1Drop = nn.Dropout(0.2)		# Some regularization
+		self.fc2 = nn.Linear(100, 10)		# Output layer, change second param
+		
+	def forward(self, x):
+		x = x.view(-1, 32*32)				# is this necessary?
+		x = F.sigmoid(self.fc1(x))
+		x = self.fc1Drop(x)
+		return F.log_softmax(self.fc2(x))
 	
 	# PyTorch will generate backward() automatically
 	
@@ -33,7 +41,7 @@ optimizer = None	# Fill this in with a method from torch.optim
 
 # train on data
 def train(epoch, logInterval = None):
-	model.eval()
+	model.train()
 	# code for train method goes here
 	
 # validate
