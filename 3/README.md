@@ -1,6 +1,7 @@
 # Instructions
 ## Running pytorch
-    1. Source python 2.7 pytorch enviornment
-        - `source /scratch/cs434spring2018/env_2.7_pytorch/bin/activate`
+    1. Source python 3.5 pytorch enviornment
+        - `source /scratch/cs434spring2018/env_3.5_pytorch/bin/activate`
     
-    2.
+    2. Execute `neuralNet.py`
+        - `python neuralNet.py`
