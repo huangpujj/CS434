@@ -6,18 +6,33 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as opt
 from torchvision import datasets, transforms
-from torch.autograde import Variable
+#from torch.autograde import Variable
 
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Not going to implement CUDA because why would we
-batchSize = 32	# Might need to be changed later
+cuda = torch.cuda.is_available()
+batch_size = 32	# Might need to be changed later
+
+kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 
 # These loaders provide iterators over the datasets
-trainLoader = torch.utils.data.DataLoader()	# fill in params
-validationLoader = torch.utils.data.DataLoader() #fill in params
+trainLoader = torch.utils.data.DataLoader(
+	datasets.MNIST('cifar', train=True, download=True,
+                   transform=transforms.Compose([
+                       transforms.ToTensor(),
+                       transforms.Normalize(mean = [0.53129727, 0.5259391, 0.52069134], std = [0.28938246, 0.28505746, 0.27971658])
+                   ])),
+    batch_size=batch_size, shuffle=True, **kwargs)
+
+
+validationLoader = torch.utils.data.DataLoader(
+	datasets.MNIST('cifar', train=False, transform=transforms.Compose([
+                       transforms.ToTensor(),
+                       transforms.Normalize(mean = [0.53129727, 0.5259391, 0.52069134], std = [0.28938246, 0.28505746, 0.27971658])
+                   ])),
+    batch_size=batch_size, shuffle=False, **kwargs) #fill in params
 
 # https://pytorch.org/docs/master/nn.html
 class Network(nn.Module):
