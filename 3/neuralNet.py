@@ -4,15 +4,15 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as opt
+import torch.optim as optim
 from torchvision import datasets, transforms
-#from torch.autograde import Variable	# Depreciated
+from torch.autograd import Variable	# Deprecated
 
 import numpy as np
 #import matplotlib.pyplot as plt
-import seaborn as sns
 
-learnRate = [0.01]	# Change this value to change learning rates
+learnRate = 0.01	# Change this value to change learning rates
+epochCount = 10   # Change this value to change # of epochs
 
 cuda = torch.cuda.is_available()
 batch_size = 32	# Might need to be changed later
@@ -20,8 +20,10 @@ batch_size = 32	# Might need to be changed later
 kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 
 # These loaders provide iterators over the datasets
+
+# Keep an eye on root and download params
 train_loader = torch.utils.data.DataLoader(
-	datasets.MNIST('cifar', train=True, download=True,
+	datasets.CIFAR10('../data', train=True, download=True,
 				   transform=transforms.Compose([
 					   transforms.ToTensor(),
 					   transforms.Normalize([0.53129727, 0.5259391, 0.52069134], [0.28938246, 0.28505746, 0.27971658])
@@ -30,7 +32,7 @@ train_loader = torch.utils.data.DataLoader(
 
 
 validation_loader = torch.utils.data.DataLoader(
-	datasets.MNIST('cifar', train=False, transform=transforms.Compose([
+	datasets.CIFAR10('../data', train=False, transform=transforms.Compose([
 					   transforms.ToTensor(),
 					   transforms.Normalize([0.53129727, 0.5259391, 0.52069134], [0.28938246, 0.28505746, 0.27971658])
 				   ])),
@@ -55,13 +57,17 @@ model = Network()
 if cuda:
 	model.cuda()
 
+optimizer = optim.SGD(model.parameters(), lr=learnRate, momentum=0.5)
+
+print(model)
+
 # train on data
-def train(epoch, logInterval = None):
+def train(epoch, log_interval = 100):
 	model.train()
 	for batch_idx, (data, target) in enumerate(train_loader):
-		#data, target = Variable(data), Variable(target)	# Depreciated
 		if cuda:
 			data, target = data.cuda(), target.cuda()
+		data, target = Variable(data), Variable(target)	# Deprecated
 		optimizer.zero_grad()
 		output = model(data)
 		loss = F.nll_loss(output, target)
@@ -73,13 +79,13 @@ def train(epoch, logInterval = None):
 				100. * batch_idx / len(train_loader), loss.data[0]))
 	
 # validate
-def validate(lossVec, accVec):
+def validate(loss_vector, accuracy_vector):
 	model.eval()
 	val_loss, correct = 0, 0
 	for data, target in validation_loader:
-		#data, target = Variable(data, volatile=True), Variable(target)	 # Depreciated
 		if cuda:
 			data, target = data.cuda(), target.cuda()
+		data, target = Variable(data, volatile=True), Variable(target)	 # Deprecated
 		output = model(data)
 		val_loss += F.nll_loss(output, target).data[0]
 		pred = output.data.max(1)[1] # get the index of the max log-probability
@@ -94,14 +100,11 @@ def validate(lossVec, accVec):
 	print('\n\tValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
 		val_loss, correct, len(validation_loader.dataset), accuracy))
 
-for rate in learnRate:
-	print("\nLearning Rate: " + str(rate))
-	epochs = 10
-	optimizer = opt.SGD(model.parameters(), lr = rate, momentum = 0.5)	# what does momentum do?
-	lossVec, accVec = [], []
-	for epoch in range(1, epochs+1):
-		train(epoch)
-		validate(lossVec,accVec)
+epochs = epochCount
+
+lossv, accv = [], []
+for epoch in range(1, epochs + 1):
+	train(epoch)
+	validate(lossv, accv)
 	
 # Dating plotting can go below this
-	
