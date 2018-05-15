@@ -44,12 +44,14 @@ class Network(nn.Module):
 		super(Network, self).__init__()
 		self.fc1 = nn.Linear(32*32, 100)	# Hidden layer
 		self.fc1Drop = nn.Dropout(0.2)		# Some regularization
-		self.fc2 = nn.Linear(100, 10)		# Output layer, change second param
+		self.fc2 = nn.Linear(120, 84)
+		self.fc3 = nn.Linear(84, 10)
 		
 	def forward(self, x):
-		x = F.sigmoid(self.fc1(x))
+		x = x.view(-1, 3*32*32)
+		x = F.sigmoid(x)
 		x = self.fc1Drop(x)
-		return F.log_softmax(self.fc2(x))
+		return F.log_softmax(x)
 	
 	# PyTorch will generate backward() automatically
 
@@ -57,20 +59,21 @@ model = Network()
 if cuda:
 	model.cuda()
 
+criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=learnRate, momentum=0.5)
 
-print(model)
+#print(model)
 
 # train on data
 def train(epoch, log_interval = 100):
 	model.train()
-	for batch_idx, (data, target) in enumerate(train_loader):
-		if cuda:
-			data, target = data.cuda(), target.cuda()
-		data, target = Variable(data), Variable(target)	# Deprecated
+	for batch_idx, data in enumerate(train_loader, 0):
+		inputs, labels = data
+		#if cuda:
+		#	data, target = data.cuda(), target.cuda()
 		optimizer.zero_grad()
-		output = model(data)
-		loss = F.nll_loss(output, target)
+		output = model(inputs)
+		loss = criterion(output, labels)
 		loss.backward()
 		optimizer.step()
 		if batch_idx % log_interval == 0:
@@ -83,9 +86,9 @@ def validate(loss_vector, accuracy_vector):
 	model.eval()
 	val_loss, correct = 0, 0
 	for data, target in validation_loader:
+		data, target = Variable(data, volatile=True), Variable(target)
 		if cuda:
 			data, target = data.cuda(), target.cuda()
-		data, target = Variable(data, volatile=True), Variable(target)	 # Deprecated
 		output = model(data)
 		val_loss += F.nll_loss(output, target).data[0]
 		pred = output.data.max(1)[1] # get the index of the max log-probability
