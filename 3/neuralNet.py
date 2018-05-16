@@ -86,7 +86,7 @@ def train_sigmoid(model, optimizer, epoch, log_interval = 100):
 		if batch_idx % log_interval == 0:
 			print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader), loss.data[0]))
+                100. * batch_idx / len(train_loader), loss.data.item())
 
 def validate_sigmoid(model, optimizer, sig_accuracy, sig_avg_loss,loss_vector, accuracy_vector):
 	model.eval()
@@ -126,7 +126,7 @@ def train_relu(model, optimizer, epoch, log_interval = 100):
 		if batch_idx % log_interval == 0:
 			print('RELU -- Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader), loss.data[0]))
+                100. * batch_idx / len(train_loader), loss.data.item()))
 	
 def validate_relu(model, optimizer, relu_accuracy, relu_avg_loss, loss_vector, accuracy_vector):
 	model.eval()
@@ -311,15 +311,15 @@ def part4():
 			validate_multi(model, optimizer, part4, lossv, accv)
 		part4.write("\n")
 	part4.close()
-
+'''
 print("\t--- Part 1 Start ---\n")
 part1()
 print("\t--- Part 1 End ---\n")
-
+'''
 print("\t--- Part 2 Start ---\n")
 part2()
 print("\t--- Part 2 End ---\n")
-
+'''
 print("\t--- Part 3 Start ---\n")
 part3()
 print("\t--- Part 3 End ---\n")
@@ -327,3 +327,4 @@ print("\t--- Part 3 End ---\n")
 print("\t--- Part 4 Start ---\n")
 part4()
 print("\t--- Part 4 End ---\n")
+'''
