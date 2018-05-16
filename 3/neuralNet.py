@@ -11,7 +11,6 @@ from torch.autograd import Variable	# Deprecated
 import numpy as np
 
 # --- Global Statements Start ---
-
 learningRates = [0.0001, 0.001, 0.01, 0.1]
 epochs = 10
 batch_size = 32
@@ -45,14 +44,12 @@ class Network(nn.Module):
 		self.fc1 = nn.Linear(3*32*32, 100)	# Hidden layer
 		self.fc1Drop = nn.Dropout(0.2)		# Some regularization
 		self.fc2 = nn.Linear(100, 10)
-		#self.fc3 = nn.Linear(50, 10)
 		
 	def sigmoid(self, x):
 		x = x.view(-1, 3*32*32)
 		x = F.sigmoid(self.fc1(x))
 		x = self.fc1Drop(x)
 		x = F.sigmoid(self.fc2(x))
-		#x = F.sigmoid(self.fc3(x))
 		return x
 	
 	def relu(self,x):
@@ -77,7 +74,7 @@ def train_sigmoid(model, optimizer, epoch, log_interval = 100):
 				epoch, batch_idx * len(data), len(train_loader.dataset),
 				100 * batch_idx / len(train_loader), loss.item()))
 
-def validate_sigmoid(model, optimizer, filename, loss_vector, accuracy_vector):
+def validate_sigmoid(model, optimizer, sig_accuracy, sig_avg_loss,loss_vector, accuracy_vector):
 	model.eval()
 	val_loss, correct = 0, 0
 	for data, target in validation_loader:
@@ -94,7 +91,8 @@ def validate_sigmoid(model, optimizer, filename, loss_vector, accuracy_vector):
 	
 	print('\n\tValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
 		val_loss, correct, len(validation_loader.dataset), accuracy))
-	filename.write("{:.0f}%,".format(accuracy))
+	sig_avg_loss.write("{:.4f}%,".format(val_loss))
+	sig_accuracy.write("{:.0f}%,".format(accuracy))
 
 # --- Sigmoid Functions End ---
 
@@ -116,7 +114,7 @@ def train_relu(model, optimizer, epoch, log_interval = 100):
 				epoch, batch_idx * len(data), len(train_loader.dataset),
 				100 * batch_idx / len(train_loader), loss.item()))
 	
-def validate_relu(model, optimizer, filename, loss_vector, accuracy_vector):
+def validate_relu(model, optimizer, relu_accuracy, p2_relu_avg_loss, loss_vector, accuracy_vector):
 	model.eval()
 	val_loss, correct = 0, 0
 	for data, target in validation_loader:
@@ -130,17 +128,29 @@ def validate_relu(model, optimizer, filename, loss_vector, accuracy_vector):
 
 	accuracy = 100 * correct / len(validation_loader.dataset)
 	accuracy_vector.append(accuracy)
-	filename.write("{:.0f}%,".format(accuracy))
+	print('\n\tValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+		val_loss, correct, len(validation_loader.dataset), accuracy))
+	
+	relu_avg_loss.write("{:.4f}%,".format(val_loss))
+	relu_accuracy.write("{:.0f}%,".format(accuracy))
 
 # --- Relu Functions End ---
 
 def part1():
-	part1 = open("part1_sigmoid.csv", 'w+')
-	part1.write("Sigmoid\n")
-	part1.write("Epochs, ")
+	p1_sig_acc = open("p1_sig_accuracy.csv", 'w+')
+	p1_sig_acc.write("Sigmoid Accuracy\n")
+	p1_sig_acc.write("Epochs, ")
+
+	p1_sig_avg_loss = open("p1_sig_avg_loss.csv", 'w+')
+	p1_sig_avg_loss.write("Sigmoid Average Loss\n")
+	p1_sig_avg_loss.write("Epochs, ")
+
 	for i in range(1, epochs + 1):
-		part1.write(str(i) + ",")
-	part1.write("\n")
+		p1_sig_acc.write(str(i) + ",")
+		p1_sig_avg_loss.write(str(i) + ",")
+		
+	p1_sig_acc.write("\n")
+	p1_sig_avg_loss.write("\n")
 
 	for rate in learningRates:
 		model = Network()
@@ -148,23 +158,36 @@ def part1():
 			model.cuda()
 			
 		print("Learning Rate: " + str(rate))
-		part1.write(str(rate) + ",")
+		p1_sig_acc.write("LR: " + str(rate) + ",")
+		p1_sig_avg_loss.write("LR: " + str(rate) + ",")
+
 		optimizer = optim.SGD(model.parameters(), lr=rate)
 
 		lossv, accv = [], []
 		for epoch in range(1, epochs + 1):
 			train_sigmoid(model, optimizer, epoch)
-			validate_sigmoid(model, optimizer, part1, lossv, accv)
-		part1.write("\n")
-	part1.close()
+			validate_sigmoid(model, optimizer, p1_sig_acc, p1_sig_avg_loss, lossv, accv)
+		p1_sig_acc.write("\n")
+		p1_sig_avg_loss.write("\n")
+
+	p1_sig_acc.close()
+	p1_sig_avg_loss.close()
 
 def part2():
-	part2 = open("part2_relu.csv", 'w+')
-	part2.write("Relu\n")
-	part2.write("Epochs, ")
+	p2_relu_acc = open("p2_relu_accuracy.csv", 'w+')
+	p2_relu_acc.write("Relu Accuracy\n")
+	p2_relu_acc.write("Epochs, ")
+
+	p2_relu_avg_loss = open("p2_relu_avg_loss.csv", 'w+')
+	p2_relu_avg_loss.write("Relu Average Loss\n")
+	p2_relu_avg_loss.write("Epochs, ")
+
 	for i in range(1, epochs + 1):
-		part2.write(str(i) + ",")
-	part2.write("\n")
+		p2_relu_acc.write(str(i) + ",")
+		p2_relu_avg_loss.write(str(i) + ",")
+		
+	p2_relu_acc.write("\n")
+	p2_relu_avg_loss.write("\n")
 
 	for rate in learningRates:
 		model = Network()
@@ -172,15 +195,20 @@ def part2():
 			model.cuda()
 			
 		print("Learning Rate: " + str(rate))
-		part2.write(str(rate) + ",")
+		p2_relu_acc.write("LR: " + str(rate) + ",")
+		p2_relu_avg_loss.write("LR: " + str(rate) + ",")
+
 		optimizer = optim.SGD(model.parameters(), lr=rate)
 
 		lossv, accv = [], []
 		for epoch in range(1, epochs + 1):
 			train_relu(model, optimizer, epoch)
-			validate_relu(model, optimizer, part2, lossv, accv)
-		part2.write("\n")
-	part2.close()
+			validate_relu(model, optimizer, p2_relu_acc, p2_relu_avg_loss, lossv, accv)
+		p2_relu_acc.write("\n")
+		p2_relu_avg_loss.write("\n")
+
+	p2_relu_acc.close()
+	p2_relu_avg_loss.close()
 
 def part3():
 	part3 = open("part3_relu_improved.csv", 'w+')
