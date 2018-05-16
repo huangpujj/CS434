@@ -16,9 +16,9 @@ epochs = 10
 batch_size = 100
 
 if (len(sys.argv) > 1):
-	DROPOUT = sys.argv[2]
-	MOMENTUM = sys.argv[3]
-	WEIGHT_DECAY = sys.argv[4]
+	DROPOUT = sys.argv[1]
+	MOMENTUM = sys.argv[2]
+	WEIGHT_DECAY = sys.argv[3]
 else:
 	DROPOUT = 0
 	MOMENTUM = 0 
@@ -213,11 +213,11 @@ def validate_multi(model, optimizer, relu_accuracy, relu_avg_loss, loss_vector, 
 # --- Multi Functions End ---
 
 def part1():
-	p1_sig_acc = open("p1_sig_accuracy.csv", 'w+')
+	p1_sig_acc = open("p1_accuracy.csv", 'w+')
 	p1_sig_acc.write("Sigmoid Accuracy\n")
 	p1_sig_acc.write("Epochs, ")
 
-	p1_sig_avg_loss = open("p1_sig_avg_loss.csv", 'w+')
+	p1_sig_avg_loss = open("p1_avg_loss.csv", 'w+')
 	p1_sig_avg_loss.write("Sigmoid Average Loss\n")
 	p1_sig_avg_loss.write("Epochs, ")
 
@@ -250,11 +250,11 @@ def part1():
 	p1_sig_avg_loss.close()
 
 def part2():
-	p2_relu_acc = open("p2_relu_accuracy.csv", 'w+')
+	p2_relu_acc = open("p2_accuracy.csv", 'w+')
 	p2_relu_acc.write("Relu Accuracy\n")
 	p2_relu_acc.write("Epochs, ")
 
-	p2_relu_avg_loss = open("p2_relu_avg_loss.csv", 'w+')
+	p2_relu_avg_loss = open("p2_avg_loss.csv", 'w+')
 	p2_relu_avg_loss.write("Relu Average Loss\n")
 	p2_relu_avg_loss.write("Epochs, ")
 
@@ -287,11 +287,11 @@ def part2():
 	p2_relu_avg_loss.close()
 
 def part3():
-	p2_relu_acc = open("p3_relu_accuracy.csv", 'w+')
+	p2_relu_acc = open("p3_accuracy.csv", 'w+')
 	p2_relu_acc.write("Relu Accuracy\n")
 	p2_relu_acc.write("Epochs, ")
 
-	p2_relu_avg_loss = open("p3_relu_avg_loss.csv", 'w+')
+	p2_relu_avg_loss = open("p3_avg_loss.csv", 'w+')
 	p2_relu_avg_loss.write("Relu Average Loss\n")
 	p2_relu_avg_loss.write("Epochs, ")
 
