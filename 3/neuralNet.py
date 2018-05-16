@@ -67,7 +67,7 @@ def train(epoch, log_interval = 100):
 		if batch_idx % log_interval == 0:
 			print('\tTrain Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
 				epoch, batch_idx * len(data), len(train_loader.dataset),
-				100. * batch_idx / len(train_loader), loss.item()))
+				100 * batch_idx / len(train_loader), loss.item()))
 	
 # validate
 def validate(loss_vector, accuracy_vector):
@@ -82,7 +82,7 @@ def validate(loss_vector, accuracy_vector):
 	val_loss /= len(validation_loader)
 	loss_vector.append(val_loss)
 
-	accuracy = 100. * correct / len(validation_loader.dataset)
+	accuracy = 100 * correct / len(validation_loader.dataset)
 	accuracy_vector.append(accuracy)
 	
 	print('\n\tValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
