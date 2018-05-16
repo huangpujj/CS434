@@ -17,41 +17,41 @@ epochCount = 10   # Change this value to change # of epochs
 cuda = torch.cuda.is_available()
 batch_size = 32	# Might need to be changed later
 
+# ???
 kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 
 # These loaders provide iterators over the datasets
-
-# Keep an eye on root and download params
 train_loader = torch.utils.data.DataLoader(
 	datasets.CIFAR10('../data', train=True, download=True,
 				   transform=transforms.Compose([
 					   transforms.ToTensor(),
 					   transforms.Normalize([0.53129727, 0.5259391, 0.52069134], [0.28938246, 0.28505746, 0.27971658])
 				   ])),
-	batch_size=batch_size, shuffle=True, **kwargs)
-
+	batch_size=batch_size, shuffle=True, num_workers=2)
 
 validation_loader = torch.utils.data.DataLoader(
-	datasets.CIFAR10('../data', train=False, transform=transforms.Compose([
+	datasets.CIFAR10('../data', train=False, download=True, transform=transforms.Compose([
 					   transforms.ToTensor(),
 					   transforms.Normalize([0.53129727, 0.5259391, 0.52069134], [0.28938246, 0.28505746, 0.27971658])
 				   ])),
-	batch_size=batch_size, shuffle=False, **kwargs) #fill in params
+	batch_size=batch_size, shuffle=False, num_workers=2)
 
 # https://pytorch.org/docs/master/nn.html
 class Network(nn.Module):
 	def __init__(self):
 		super(Network, self).__init__()
-		self.fc1 = nn.Linear(32*32, 100)	# Hidden layer
+		self.fc1 = nn.Linear(3*32*32, 100)	# Hidden layer
 		self.fc1Drop = nn.Dropout(0.2)		# Some regularization
-		self.fc2 = nn.Linear(120, 84)
-		self.fc3 = nn.Linear(84, 10)
+		self.fc2 = nn.Linear(100, 10)
+		#self.fc3 = nn.Linear(50, 10)
 		
 	def forward(self, x):
 		x = x.view(-1, 3*32*32)
-		x = F.sigmoid(x)
+		x = F.sigmoid(self.fc1(x))
 		x = self.fc1Drop(x)
-		return F.log_softmax(x)
+		x = F.sigmoid(self.fc2(x))
+		#x = F.sigmoid(self.fc3(x))
+		return x
 	
 	# PyTorch will generate backward() automatically
 
@@ -79,16 +79,13 @@ def train(epoch, log_interval = 100):
 		if batch_idx % log_interval == 0:
 			print('\tTrain Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
 				epoch, batch_idx * len(data), len(train_loader.dataset),
-				100. * batch_idx / len(train_loader), loss.data[0]))
+				100. * batch_idx / len(train_loader), loss.item()))
 	
 # validate
 def validate(loss_vector, accuracy_vector):
 	model.eval()
 	val_loss, correct = 0, 0
 	for data, target in validation_loader:
-		data, target = Variable(data, volatile=True), Variable(target)
-		if cuda:
-			data, target = data.cuda(), target.cuda()
 		output = model(data)
 		val_loss += F.nll_loss(output, target).data[0]
 		pred = output.data.max(1)[1] # get the index of the max log-probability

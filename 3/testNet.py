@@ -7,7 +7,6 @@ from torch.autograd import Variable
 
 import numpy as np
 #import matplotlib.pyplot as plt
-#import seaborn as sns
 
 cuda = torch.cuda.is_available()
 print('Using PyTorch version:', torch.__version__, 'CUDA:', cuda)
