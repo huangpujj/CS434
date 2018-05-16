@@ -11,31 +11,6 @@ from torch.autograd import Variable	# Deprecated
 import numpy as np
 #import matplotlib.pyplot as plt
 
-learnRate = 0.01	# Change this value to change learning rates
-epochCount = 10   # Change this value to change # of epochs
-
-cuda = torch.cuda.is_available()
-batch_size = 32	# Might need to be changed later
-
-# ???
-kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
-
-# These loaders provide iterators over the datasets
-train_loader = torch.utils.data.DataLoader(
-	datasets.CIFAR10('../data', train=True, download=True,
-				   transform=transforms.Compose([
-					   transforms.ToTensor(),
-					   transforms.Normalize([0.53129727, 0.5259391, 0.52069134], [0.28938246, 0.28505746, 0.27971658])
-				   ])),
-	batch_size=batch_size, shuffle=True, num_workers=2)
-
-validation_loader = torch.utils.data.DataLoader(
-	datasets.CIFAR10('../data', train=False, download=True, transform=transforms.Compose([
-					   transforms.ToTensor(),
-					   transforms.Normalize([0.53129727, 0.5259391, 0.52069134], [0.28938246, 0.28505746, 0.27971658])
-				   ])),
-	batch_size=batch_size, shuffle=False, num_workers=2)
-
 # https://pytorch.org/docs/master/nn.html
 class Network(nn.Module):
 	def __init__(self):
@@ -53,16 +28,29 @@ class Network(nn.Module):
 		#x = F.sigmoid(self.fc3(x))
 		return x
 	
-	# PyTorch will generate backward() automatically
-
-model = Network()
-if cuda:
-	model.cuda()
+learningRates = [0.0001, 0.001, 0.01, 0.1]
+epochs = 10
+batch_size = 32
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=learnRate, momentum=0.5)
+cuda = torch.cuda.is_available()
 
-#print(model)
+kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
+
+train_loader = torch.utils.data.DataLoader(
+	datasets.CIFAR10('../data', train=True, download=True,
+				   transform=transforms.Compose([
+					   transforms.ToTensor(),
+					   transforms.Normalize([0.53129727, 0.5259391, 0.52069134], [0.28938246, 0.28505746, 0.27971658])
+				   ])),
+	batch_size=batch_size, shuffle=True, num_workers=2)
+
+validation_loader = torch.utils.data.DataLoader(
+	datasets.CIFAR10('../data', train=False, download=True, transform=transforms.Compose([
+					   transforms.ToTensor(),
+					   transforms.Normalize([0.53129727, 0.5259391, 0.52069134], [0.28938246, 0.28505746, 0.27971658])
+				   ])),
+	batch_size=batch_size, shuffle=False, num_workers=2)
 
 # train on data
 def train(epoch, log_interval = 100):
@@ -87,8 +75,8 @@ def validate(loss_vector, accuracy_vector):
 	val_loss, correct = 0, 0
 	for data, target in validation_loader:
 		output = model(data)
-		val_loss += F.nll_loss(output, target).data[0]
-		pred = output.data.max(1)[1] # get the index of the max log-probability
+		val_loss += F.nll_loss(output, target).data.item()
+		pred = output.data.max(1)[1] 					# get the index of the max log-probability
 		correct += pred.eq(target.data).cpu().sum()
 
 	val_loss /= len(validation_loader)
@@ -100,11 +88,17 @@ def validate(loss_vector, accuracy_vector):
 	print('\n\tValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
 		val_loss, correct, len(validation_loader.dataset), accuracy))
 
-epochs = epochCount
+model = Network()
+if cuda:
+	model.cuda()
 
-lossv, accv = [], []
-for epoch in range(1, epochs + 1):
-	train(epoch)
-	validate(lossv, accv)
+for rate in learningRates:
+	print("Learning Rate: " + str(rate))
+	optimizer = optim.SGD(model.parameters(), lr=rate, momentum=0.5)
+
+	lossv, accv = [], []
+	for epoch in range(1, epochs + 1):
+		train(epoch)
+		validate(lossv, accv)
 	
 # Dating plotting can go below this
