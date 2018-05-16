@@ -114,7 +114,7 @@ def train_relu(model, optimizer, epoch, log_interval = 100):
 				epoch, batch_idx * len(data), len(train_loader.dataset),
 				100 * batch_idx / len(train_loader), loss.item()))
 	
-def validate_relu(model, optimizer, relu_accuracy, p2_relu_avg_loss, loss_vector, accuracy_vector):
+def validate_relu(model, optimizer, relu_accuracy, relu_avg_loss, loss_vector, accuracy_vector):
 	model.eval()
 	val_loss, correct = 0, 0
 	for data, target in validation_loader:
@@ -234,15 +234,16 @@ def part3():
 		part3.write("\n")
 	part3.close()
 
-
+'''
 print("\t--- Part 1 Start ---\n")
 part1()
 print("\t--- Part 1 End ---\n")
-
+'''
 print("\t--- Part 2 Start ---\n")
 part2()
 print("\t--- Part 2 End ---\n")
-
+'''
 print("\t--- Part 3 Start ---\n")
 part3()
 print("\t--- Part 3 End ---\n")
+'''
