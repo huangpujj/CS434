@@ -86,7 +86,7 @@ def train_sigmoid(model, optimizer, epoch, log_interval = 100):
 		if batch_idx % log_interval == 0:
 			print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader), loss.data.item())
+                100. * batch_idx / len(train_loader), loss.data.item()))
 
 def validate_sigmoid(model, optimizer, sig_accuracy, sig_avg_loss,loss_vector, accuracy_vector):
 	model.eval()
