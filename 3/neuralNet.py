@@ -70,7 +70,7 @@ def train(epoch, log_interval = 100):
 				100 * batch_idx / len(train_loader), loss.item()))
 	
 # validate
-def validate(loss_vector, accuracy_vector):
+def validate(filename, loss_vector, accuracy_vector):
 	model.eval()
 	val_loss, correct = 0, 0
 	for data, target in validation_loader:
@@ -87,18 +87,28 @@ def validate(loss_vector, accuracy_vector):
 	
 	print('\n\tValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
 		val_loss, correct, len(validation_loader.dataset), accuracy))
+	filename.write("{:.0f}%,".format(accuracy))
 
-model = Network()
-if cuda:
-	model.cuda()
+part1 = open("part1.csv", 'w+')
+part1.write("Epochs, ")
+for i in range(1, epochs + 1):
+	part1.write(str(i) + ",")
+part1.write("\n")
 
 for rate in learningRates:
+	model = Network()
+	if cuda:
+		model.cuda()
+		
 	print("Learning Rate: " + str(rate))
+	part1.write(str(rate) + ",")
 	optimizer = optim.SGD(model.parameters(), lr=rate, momentum=0.5)
 
 	lossv, accv = [], []
 	for epoch in range(1, epochs + 1):
 		train(epoch)
-		validate(lossv, accv)
+		validate(part1, lossv, accv)
+	part1.write("\n")
+
+part1.close()
 	
-# Dating plotting can go below this
