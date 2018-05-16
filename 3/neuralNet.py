@@ -11,7 +11,7 @@ from torch.autograd import Variable	# Deprecated
 import numpy as np
 #import matplotlib.pyplot as plt
 
-learnRate = 0.01	# Change this value to change learning rates
+learnRate = 0.1	# Change this value to change learning rates
 epochCount = 10   # Change this value to change # of epochs
 
 cuda = torch.cuda.is_available()
@@ -28,7 +28,7 @@ train_loader = torch.utils.data.DataLoader(
 					   transforms.Normalize([0.53129727, 0.5259391, 0.52069134], [0.28938246, 0.28505746, 0.27971658])
 				   ])),
 	batch_size=batch_size, shuffle=True, num_workers=2)
-
+	
 validation_loader = torch.utils.data.DataLoader(
 	datasets.CIFAR10('../data', train=False, download=True, transform=transforms.Compose([
 					   transforms.ToTensor(),
@@ -62,7 +62,7 @@ if cuda:
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=learnRate, momentum=0.5)
 
-#print(model)
+# print(model)
 
 # train on data
 def train(epoch, log_interval = 100):
@@ -79,7 +79,7 @@ def train(epoch, log_interval = 100):
 		if batch_idx % log_interval == 0:
 			print('\tTrain Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
 				epoch, batch_idx * len(data), len(train_loader.dataset),
-				100. * batch_idx / len(train_loader), loss.item()))
+				100 * batch_idx / len(train_loader), loss.item()))
 	
 # validate
 def validate(loss_vector, accuracy_vector):
@@ -87,14 +87,14 @@ def validate(loss_vector, accuracy_vector):
 	val_loss, correct = 0, 0
 	for data, target in validation_loader:
 		output = model(data)
-		val_loss += F.nll_loss(output, target).data[0]
+		val_loss += F.nll_loss(output, target).data.item()
 		pred = output.data.max(1)[1] # get the index of the max log-probability
 		correct += pred.eq(target.data).cpu().sum()
 
 	val_loss /= len(validation_loader)
 	loss_vector.append(val_loss)
 
-	accuracy = 100. * correct / len(validation_loader.dataset)
+	accuracy = 100 * correct / len(validation_loader.dataset)
 	accuracy_vector.append(accuracy)
 	
 	print('\n\tValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
