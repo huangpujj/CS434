@@ -16,13 +16,13 @@ epochs = 10
 batch_size = 100
 
 if (len(sys.argv) > 1):
-	DROPOUT = sys.argv[1]
-	MOMENTUM = sys.argv[2]
-	WEIGHT_DECAY = sys.argv[3]
+	DROPOUT = float(sys.argv[1])
+	MOMENTUM = float(sys.argv[2])
+	WEIGHT_DECAY = float(sys.argv[3])
 else:
-	DROPOUT = 0
-	MOMENTUM = 0 
-	WEIGHT_DECAY = 0
+	DROPOUT = 0.0
+	MOMENTUM = 0.0
+	WEIGHT_DECAY = 0.0
 
 cuda = torch.cuda.is_available()
 
