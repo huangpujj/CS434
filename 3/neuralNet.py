@@ -20,9 +20,9 @@ if (len(sys.argv) > 1):
 	MOMENTUM = float(sys.argv[2])
 	WEIGHT_DECAY = float(sys.argv[3])
 else:
-	DROPOUT = 0.0
-	MOMENTUM = 0.0
-	WEIGHT_DECAY = 0.0
+	DROPOUT = float(0.0)
+	MOMENTUM = float(0.0)
+	WEIGHT_DECAY = float(0.0)
 
 cuda = torch.cuda.is_available()
 
@@ -325,11 +325,11 @@ def part3():
 	p2_relu_avg_loss.close()
 
 def part4():
-	p2_relu_acc = open("p4_multilayer.csv", 'w+')
+	p2_relu_acc = open("p4_multilayer_acc.csv", 'w+')
 	p2_relu_acc.write("Relu Accuracy\n")
 	p2_relu_acc.write("Epochs, ")
 
-	p2_relu_avg_loss = open("p4_multilayer.csv", 'w+')
+	p2_relu_avg_loss = open("p4_multilayer_loss.csv", 'w+')
 	p2_relu_avg_loss.write("Relu Average Loss\n")
 	p2_relu_avg_loss.write("Epochs, ")
 
@@ -364,7 +364,7 @@ def part4():
 print("\t--- Part 1 Start ---\n")
 part1()
 print("\t--- Part 1 End ---\n")
-'''
+
 print("\t--- Part 2 Start ---\n")
 part2()
 print("\t--- Part 2 End ---\n")
@@ -376,4 +376,3 @@ print("\t--- Part 3 End ---\n")
 print("\t--- Part 4 Start ---\n")
 part4()
 print("\t--- Part 4 End ---\n")
-'''
