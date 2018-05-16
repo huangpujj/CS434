@@ -149,7 +149,7 @@ def part1():
 			
 		print("Learning Rate: " + str(rate))
 		part1.write(str(rate) + ",")
-		optimizer = optim.SGD(model.parameters(), lr=rate, momentum=0.5)
+		optimizer = optim.SGD(model.parameters(), lr=rate)
 
 		lossv, accv = [], []
 		for epoch in range(1, epochs + 1):
@@ -173,7 +173,7 @@ def part2():
 			
 		print("Learning Rate: " + str(rate))
 		part2.write(str(rate) + ",")
-		optimizer = optim.SGD(model.parameters(), lr=rate, momentum=0.5)
+		optimizer = optim.SGD(model.parameters(), lr=rate)
 
 		lossv, accv = [], []
 		for epoch in range(1, epochs + 1):
@@ -182,6 +182,31 @@ def part2():
 		part2.write("\n")
 	part2.close()
 
+def part3():
+	part3 = open("part3_relu_improved.csv", 'w+')
+	part3.write("Relu\n")
+	part3.write("Epochs, ")
+	for i in range(1, epochs + 1):
+		part3.write(str(i) + ",")
+	part3.write("\n")
+
+	for rate in learningRates:
+		model = Network()
+		if cuda:
+			model.cuda()
+			
+		print("Learning Rate: " + str(rate))
+		part3.write(str(rate) + ",")
+		optimizer = optim.SGD(model.parameters(), lr=rate, momentum=0.5, weight_decay=0.5)
+
+		lossv, accv = [], []
+		for epoch in range(1, epochs + 1):
+			train_relu(model, optimizer, epoch)
+			validate_relu(model, optimizer, part3, lossv, accv)
+		part3.write("\n")
+	part3.close()
+
+
 print("\t--- Part 1 Start ---\n")
 part1()
 print("\t--- Part 1 End ---\n")
@@ -189,3 +214,7 @@ print("\t--- Part 1 End ---\n")
 print("\t--- Part 2 Start ---\n")
 part2()
 print("\t--- Part 2 End ---\n")
+
+print("\t--- Part 3 Start ---\n")
+part3()
+print("\t--- Part 3 End ---\n")
