@@ -15,7 +15,6 @@ learningRates = [0.0001, 0.001, 0.01, 0.1]
 epochs = 10
 batch_size = 32
 
-criterion = nn.CrossEntropyLoss()
 cuda = torch.cuda.is_available()
 
 kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
@@ -62,17 +61,19 @@ class Network(nn.Module):
 # --- Sigmoid Functions Start ---
 def train_sigmoid(model, optimizer, epoch, log_interval = 100):
 	model.train()
-	for batch_idx, data in enumerate(train_loader, 0):
-		inputs, labels = data
+	for batch_idx, (data, target) in enumerate(train_loader):
+		if cuda:
+			data, target = data.cuda(), target.cuda()
+		data, target = Variable(data), Variable(target)
 		optimizer.zero_grad()
-		output = model.sigmoid(inputs)
-		loss = criterion(output, labels)
+		output = model.sigmoid(data)
+		loss = F.nll_loss(output, target)
 		loss.backward()
 		optimizer.step()
 		if batch_idx % log_interval == 0:
-			print('\tTrain Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-				epoch, batch_idx * len(data), len(train_loader.dataset),
-				100 * batch_idx / len(train_loader), loss.item()))
+			print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                epoch, batch_idx * len(data), len(train_loader.dataset),
+                100. * batch_idx / len(train_loader), loss.data[0]))
 
 def validate_sigmoid(model, optimizer, sig_accuracy, sig_avg_loss,loss_vector, accuracy_vector):
 	model.eval()
@@ -91,7 +92,7 @@ def validate_sigmoid(model, optimizer, sig_accuracy, sig_avg_loss,loss_vector, a
 	
 	print('\n\tValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
 		val_loss, correct, len(validation_loader.dataset), accuracy))
-	sig_avg_loss.write("{:.4f}%,".format(val_loss))
+	sig_avg_loss.write("{:.4f},".format(val_loss))
 	sig_accuracy.write("{:.0f}%,".format(accuracy))
 
 # --- Sigmoid Functions End ---
@@ -100,19 +101,19 @@ def validate_sigmoid(model, optimizer, sig_accuracy, sig_avg_loss,loss_vector, a
 
 def train_relu(model, optimizer, epoch, log_interval = 100):
 	model.train()
-	for batch_idx, data in enumerate(train_loader, 0):
-		inputs, labels = data
-		#if cuda:
-		#	data, target = data.cuda(), target.cuda()
+	for batch_idx, (data, target) in enumerate(train_loader):
+		if cuda:
+			data, target = data.cuda(), target.cuda()
+		data, target = Variable(data), Variable(target)
 		optimizer.zero_grad()
-		output = model.relu(inputs)
-		loss = criterion(output, labels)
+		output = model.relu(data)
+		loss = F.nll_loss(output, target)
 		loss.backward()
 		optimizer.step()
 		if batch_idx % log_interval == 0:
-			print('\t RELU -- Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-				epoch, batch_idx * len(data), len(train_loader.dataset),
-				100 * batch_idx / len(train_loader), loss.item()))
+			print('RELU -- Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                epoch, batch_idx * len(data), len(train_loader.dataset),
+                100. * batch_idx / len(train_loader), loss.data[0]))
 	
 def validate_relu(model, optimizer, relu_accuracy, relu_avg_loss, loss_vector, accuracy_vector):
 	model.eval()
@@ -131,7 +132,7 @@ def validate_relu(model, optimizer, relu_accuracy, relu_avg_loss, loss_vector, a
 	print('\n\tValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
 		val_loss, correct, len(validation_loader.dataset), accuracy))
 	
-	relu_avg_loss.write("{:.4f}%,".format(val_loss))
+	relu_avg_loss.write("{:.4f},".format(val_loss))
 	relu_accuracy.write("{:.0f}%,".format(accuracy))
 
 # --- Relu Functions End ---
@@ -234,7 +235,7 @@ def part3():
 		part3.write("\n")
 	part3.close()
 
-'''
+
 print("\t--- Part 1 Start ---\n")
 part1()
 print("\t--- Part 1 End ---\n")
@@ -242,7 +243,7 @@ print("\t--- Part 1 End ---\n")
 print("\t--- Part 2 Start ---\n")
 part2()
 print("\t--- Part 2 End ---\n")
-'''
+
 print("\t--- Part 3 Start ---\n")
 part3()
 print("\t--- Part 3 End ---\n")
