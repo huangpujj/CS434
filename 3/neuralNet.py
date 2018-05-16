@@ -36,8 +36,7 @@ validation_loader = torch.utils.data.DataLoader(
 
 # --- Global Statements End---
 
-# https://pytorch.org/docs/master/nn.html
-class Network(nn.Module):
+class MultiNetwork(nn.Module):
 	def __init__(self):
 		super(Network, self).__init__()
 		self.fc1 = nn.Linear(3*32*32, 100)	
@@ -46,6 +45,17 @@ class Network(nn.Module):
 		#self.fcm1 = nn.Linear(3*32*32, 50)
 		#self.fcm2 = nn.Linear(50,50)
 		#self.fcm3 = nn.Linear(50,10)
+
+# https://pytorch.org/docs/master/nn.html
+class Network(nn.Module):
+	def __init__(self):
+		super(Network, self).__init__()
+		self.fc1 = nn.Linear(3*32*32, 100)	
+		self.fc1Drop = nn.Dropout(0.2)	
+		self.fc2 = nn.Linear(100, 10)
+		self.fcm1 = nn.Linear(3*32*32, 50)
+		self.fcm2 = nn.Linear(50,50)
+		self.fcm3 = nn.Linear(50,10)
 		
 	def sigmoid(self, x):
 		x = x.view(-1, 3*32*32)
@@ -65,8 +75,7 @@ class Network(nn.Module):
 		x = self.fc1Drop(x)
 		x = F.relu(self.fcm2(x))
 		x = self.fc1Drop(x)
-		x = F.relu(self.fcm3(x))
-		return x
+		return F.log_softmax(self.fcm3(x))
 
 
 # --- Sigmoid Functions Start ---
@@ -152,23 +161,21 @@ def validate_relu(model, optimizer, relu_accuracy, relu_avg_loss, loss_vector, a
 # --- Relu Functions End ---
 
 # --- Multi Functions Start ---
-
 def train_multi(model, optimizer, epoch, log_interval = 100):
 	model.train()
-	for batch_idx, data in enumerate(train_loader, 0):
-		inputs, labels = data
-		#if cuda:
-		#	data, target = data.cuda(), target.cuda()
+	for batch_idx, (data, target) in enumerate(train_loader):
+		if cuda:
+			data, target = data.cuda(), target.cuda()
+		data, target = Variable(data), Variable(target)
 		optimizer.zero_grad()
-		output = model.multi_layer(inputs)
-		loss = criterion(output, labels)
+		output = model.multi_layer(data)
+		loss = F.nll_loss(output, target)
 		loss.backward()
 		optimizer.step()
 		if batch_idx % log_interval == 0:
-			print('\t Multi_Layer -- Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-				epoch, batch_idx * len(data), len(train_loader.dataset),
-				100 * batch_idx / len(train_loader), loss.item()))
-	
+			print('Multi-Layer -- Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                epoch, batch_idx * len(data), len(train_loader.dataset),
+                100. * batch_idx / len(train_loader), loss.data.item()))
 def validate_multi(model, optimizer, relu_accuracy, relu_avg_loss, loss_vector, accuracy_vector):
 	model.eval()
 	val_loss, correct = 0, 0
@@ -186,7 +193,7 @@ def validate_multi(model, optimizer, relu_accuracy, relu_avg_loss, loss_vector, 
 	print('\n\tValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
 		val_loss, correct, len(validation_loader.dataset), accuracy))
 	
-	relu_avg_loss.write("{:.4f}%,".format(val_loss))
+	relu_avg_loss.write("{:.4f},".format(val_loss))
 	relu_accuracy.write("{:.0f}%,".format(accuracy))
 
 # --- Multi Functions End ---
@@ -266,12 +273,20 @@ def part2():
 	p2_relu_avg_loss.close()
 
 def part3():
-	part3 = open("part3_relu_improved.csv", 'w+')
-	part3.write("Relu\n")
-	part3.write("Epochs, ")
+	p2_relu_acc = open("p3_relu_accuracy.csv", 'w+')
+	p2_relu_acc.write("Relu Accuracy\n")
+	p2_relu_acc.write("Epochs, ")
+
+	p2_relu_avg_loss = open("p3_relu_avg_loss.csv", 'w+')
+	p2_relu_avg_loss.write("Relu Average Loss\n")
+	p2_relu_avg_loss.write("Epochs, ")
+
 	for i in range(1, epochs + 1):
-		part3.write(str(i) + ",")
-	part3.write("\n")
+		p2_relu_acc.write(str(i) + ",")
+		p2_relu_avg_loss.write(str(i) + ",")
+		
+	p2_relu_acc.write("\n")
+	p2_relu_avg_loss.write("\n")
 
 	for rate in learningRates:
 		model = Network()
@@ -279,23 +294,36 @@ def part3():
 			model.cuda()
 			
 		print("Learning Rate: " + str(rate))
-		part3.write(str(rate) + ",")
+		p2_relu_acc.write("LR: " + str(rate) + ",")
+		p2_relu_avg_loss.write("LR: " + str(rate) + ",")
+
+
 		optimizer = optim.SGD(model.parameters(), lr=rate, momentum=0, weight_decay=0.5)
 
 		lossv, accv = [], []
 		for epoch in range(1, epochs + 1):
 			train_relu(model, optimizer, epoch)
-			validate_relu(model, optimizer, part3, lossv, accv)
-		part3.write("\n")
-	part3.close()
+			validate_relu(model, optimizer, p2_relu_acc, p2_relu_avg_loss, lossv, accv)
+		p2_relu_acc.write("\n")
+		p2_relu_avg_loss.write("\n")
 
+	p2_relu_acc.close()
+	p2_relu_avg_loss.close()
 def part4():
-	part4 = open("part4_multi_layer.csv", 'w+')
-	part4.write("Relu\n")
-	part4.write("Epochs, ")
+	p2_relu_acc = open("p4_multilayer.csv", 'w+')
+	p2_relu_acc.write("Relu Accuracy\n")
+	p2_relu_acc.write("Epochs, ")
+
+	p2_relu_avg_loss = open("p4_multilayer.csv", 'w+')
+	p2_relu_avg_loss.write("Relu Average Loss\n")
+	p2_relu_avg_loss.write("Epochs, ")
+
 	for i in range(1, epochs + 1):
-		part4.write(str(i) + ",")
-	part4.write("\n")
+		p2_relu_acc.write(str(i) + ",")
+		p2_relu_avg_loss.write(str(i) + ",")
+		
+	p2_relu_acc.write("\n")
+	p2_relu_avg_loss.write("\n")
 
 	for rate in learningRates:
 		model = Network()
@@ -303,20 +331,25 @@ def part4():
 			model.cuda()
 			
 		print("Learning Rate: " + str(rate))
-		part4.write(str(rate) + ",")
+		p2_relu_acc.write("LR: " + str(rate) + ",")
+		p2_relu_avg_loss.write("LR: " + str(rate) + ",")
+
 		optimizer = optim.SGD(model.parameters(), lr=rate, momentum=0.5, weight_decay=0.5)
 
 		lossv, accv = [], []
 		for epoch in range(1, epochs + 1):
 			train_multi(model, optimizer, epoch)
-			validate_multi(model, optimizer, part4, lossv, accv)
-		part4.write("\n")
-	part4.close()
+			validate_multi(model, optimizer, p2_relu_acc,p2_relu_avg_loss, lossv, accv)
+		p2_relu_acc.write("\n")
+		p2_relu_avg_loss.write("\n")
 
+	p2_relu_acc.close()
+	p2_relu_avg_loss.close()
+'''
 print("\t--- Part 1 Start ---\n")
 part1()
 print("\t--- Part 1 End ---\n")
-'''
+
 print("\t--- Part 2 Start ---\n")
 part2()
 print("\t--- Part 2 End ---\n")
@@ -324,8 +357,7 @@ print("\t--- Part 2 End ---\n")
 print("\t--- Part 3 Start ---\n")
 part3()
 print("\t--- Part 3 End ---\n")
-
+'''
 print("\t--- Part 4 Start ---\n")
 part4()
 print("\t--- Part 4 End ---\n")
-'''
