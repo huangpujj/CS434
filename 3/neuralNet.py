@@ -1,6 +1,6 @@
 # Using https://github.com/CSCfi/machine-learning-scripts/blob/master/notebooks/pytorch-mnist-mlp.ipynb 
 # as a template for implementing PyTorch
-
+import sys
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -13,46 +13,60 @@ import numpy as np
 # --- Global Statements Start ---
 learningRates = [0.0001, 0.001, 0.01, 0.1]
 epochs = 10
-batch_size = 32
+batch_size = 100
+
+if (len(sys.argv) > 1):
+	DROPOUT = sys.argv[2]
+	MOMENTUM = sys.argv[3]
+	WEIGHT_DECAY = sys.argv[4]
+else:
+	DROPOUT = 0
+	MOMENTUM = 0 
+	WEIGHT_DECAY = 0
 
 cuda = torch.cuda.is_available()
 
 kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 
+data = datasets.CIFAR10(root='cifar', train=True, download=True,
+                    transform=transforms.ToTensor()).train_data
+data = data.astype(np.float32)/255.
+
+means = []
+stdevs = []
+for i in range(3):
+    pixels = data[:,i,:,:].ravel()
+    means.append(np.mean(pixels))
+    stdevs.append(np.std(pixels))
+
+print("CIFAR10 Mean: " + str(means))
+print("CIFAR10 Standard Deviation: " + str(stdevs))
+
 train_loader = torch.utils.data.DataLoader(
 	datasets.CIFAR10('../data', train=True, download=True,
 				   transform=transforms.Compose([
 					   transforms.ToTensor(),
-					   transforms.Normalize([0.53129727, 0.5259391, 0.52069134], [0.28938246, 0.28505746, 0.27971658])
+					   transforms.Normalize(torch.FloatTensor(means), torch.FloatTensor(stdevs))
 				   ])),
 	batch_size=batch_size, shuffle=True, num_workers=2)
 
 validation_loader = torch.utils.data.DataLoader(
 	datasets.CIFAR10('../data', train=False, download=True, transform=transforms.Compose([
 					   transforms.ToTensor(),
-					   transforms.Normalize([0.53129727, 0.5259391, 0.52069134], [0.28938246, 0.28505746, 0.27971658])
+					   transforms.Normalize(torch.FloatTensor(means), torch.FloatTensor(stdevs))
 				   ])),
 	batch_size=batch_size, shuffle=False, num_workers=2)
 
 # --- Global Statements End---
-
-class MultiNetwork(nn.Module):
-	def __init__(self):
-		super(Network, self).__init__()
-		self.fc1 = nn.Linear(3*32*32, 100)	
-		self.fc1Drop = nn.Dropout(0.2)	
-		self.fc2 = nn.Linear(100, 10)
-		#self.fcm1 = nn.Linear(3*32*32, 50)
-		#self.fcm2 = nn.Linear(50,50)
-		#self.fcm3 = nn.Linear(50,10)
 
 # https://pytorch.org/docs/master/nn.html
 class Network(nn.Module):
 	def __init__(self):
 		super(Network, self).__init__()
 		self.fc1 = nn.Linear(3*32*32, 100)	
-		self.fc1Drop = nn.Dropout(0.2)	
+		self.fc1Drop = nn.Dropout(DROPOUT)	
 		self.fc2 = nn.Linear(100, 10)
+
 		self.fcm1 = nn.Linear(3*32*32, 50)
 		self.fcm2 = nn.Linear(50,50)
 		self.fcm3 = nn.Linear(50,10)
@@ -298,7 +312,7 @@ def part3():
 		p2_relu_avg_loss.write("LR: " + str(rate) + ",")
 
 
-		optimizer = optim.SGD(model.parameters(), lr=rate, momentum=0, weight_decay=0.5)
+		optimizer = optim.SGD(model.parameters(), lr=rate, momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
 
 		lossv, accv = [], []
 		for epoch in range(1, epochs + 1):
@@ -309,6 +323,7 @@ def part3():
 
 	p2_relu_acc.close()
 	p2_relu_avg_loss.close()
+
 def part4():
 	p2_relu_acc = open("p4_multilayer.csv", 'w+')
 	p2_relu_acc.write("Relu Accuracy\n")
@@ -334,7 +349,7 @@ def part4():
 		p2_relu_acc.write("LR: " + str(rate) + ",")
 		p2_relu_avg_loss.write("LR: " + str(rate) + ",")
 
-		optimizer = optim.SGD(model.parameters(), lr=rate, momentum=0.5, weight_decay=0.5)
+		optimizer = optim.SGD(model.parameters(), lr=rate, momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
 
 		lossv, accv = [], []
 		for epoch in range(1, epochs + 1):
@@ -345,11 +360,11 @@ def part4():
 
 	p2_relu_acc.close()
 	p2_relu_avg_loss.close()
-'''
+
 print("\t--- Part 1 Start ---\n")
 part1()
 print("\t--- Part 1 End ---\n")
-
+'''
 print("\t--- Part 2 Start ---\n")
 part2()
 print("\t--- Part 2 End ---\n")
@@ -357,7 +372,8 @@ print("\t--- Part 2 End ---\n")
 print("\t--- Part 3 Start ---\n")
 part3()
 print("\t--- Part 3 End ---\n")
-'''
+
 print("\t--- Part 4 Start ---\n")
 part4()
 print("\t--- Part 4 End ---\n")
+'''
