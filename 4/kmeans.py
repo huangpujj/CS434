@@ -6,10 +6,11 @@ EXAMPLES = 6000
 DIMENSIS = 784
 
 def loop(count, centroids, orig_cntr, itr=0):
-    if itr != None:
+    if itr != None:                                     # Run until max itr
         return count != itr
-    return not np.array_equal(centroids, orig_cntr)
+    return not np.array_equal(centroids, orig_cntr)     # Else, Run until convergence
 
+# K-Means
 def kmeans(data, k=2, itr = None):
     count = 0
     orig_cntr = None
@@ -22,6 +23,7 @@ def kmeans(data, k=2, itr = None):
         #centroids.append(data[i])                                 # Sanity check
 
     # Step 2 - Repeat Step 3 and 4 until none of the cluster assignments change.
+    #          If no iterations are specified, then run until convergence
     while loop(count, centroids, orig_cntr, itr):
         orig_cntr = centroids
         count += 1
@@ -67,6 +69,7 @@ def kmeans(data, k=2, itr = None):
 
 
 def part2_1(data, iterations):
+    print "P2.1"
     sse = kmeans(data, k = 2, itr = iterations)
     
     part2_1 = open("part2_1.csv", "w+")
@@ -79,6 +82,28 @@ def part2_1(data, iterations):
     
     part2_1.close()
 
+def part2_2(data, iterations, all_k):
+    print "\nP2.2"
+    record = open("part2_2.csv", "w+")
+    record.close()
+    record = open("part2_2.csv", "a+")
+
+    record.write("Itr,")
+    [record.write(str(i+1) + ",") for i in range(0, iterations)]
+    
+    for i, k, in enumerate(all_k):
+        sse = kmeans(data, k = 2, itr = iterations)
+
+        print "\nk=" + str(k)
+        print "Iteration\tSSE"
+
+        record.write("\nk=" + str(k) + ",")
+
+        for i, j in enumerate(sse):
+            print(str(i+1) + "\t" + str(j))
+            record.write(str(j) + ",")
+
+    record.close()
 
 # Main
 
@@ -91,3 +116,6 @@ if (data.shape != (EXAMPLES, DIMENSIS)):                            # Sanity che
 
 ## Non-hierarchical clustering - K-Means algorithm
 part2_1(data, 30)
+
+k = [2, 4, 6, 8, 10, 12, 14]
+part2_2(data, 10, k)
