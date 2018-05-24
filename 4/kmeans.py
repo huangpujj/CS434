@@ -110,7 +110,7 @@ if (data.shape != (EXAMPLES, DIMENSIS)):                            # Sanity che
     exit(1)
 
 ## Non-hierarchical clustering - K-Means algorithm
-#part2_1(data, 30)
+part2_1(data, 30)
 
 k = [i for i in range(2, 11)]
 part2_2(data, 10, k)
