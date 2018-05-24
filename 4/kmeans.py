@@ -1,6 +1,7 @@
 import os.path as path
 import os
 import numpy as np
+import time
 
 EXAMPLES = 6000
 DIMENSIS = 784
@@ -88,20 +89,14 @@ def part2_2(data, iterations, all_k):
     record.close()
     record = open("part2_2.csv", "a+")
 
-    record.write("Itr,")
-    [record.write(str(i+1) + ",") for i in range(0, iterations)]
-    
-    for i, k, in enumerate(all_k):
-        sse = kmeans(data, k = 2, itr = iterations)
+    print "k\tSSE"
+    for i, k_m, in enumerate(all_k): 
+        
+        sse = kmeans(data, k = k_m, itr = iterations)
+        print str(k_m) + "\t" + str(sse[iterations-1])
+        record.write(str(k_m) + "," + str(sse[iterations-1]) + "\n")
 
-        print "\nk=" + str(k)
-        print "Iteration\tSSE"
-
-        record.write("\nk=" + str(k) + ",")
-
-        for i, j in enumerate(sse):
-            print(str(i+1) + "\t" + str(j))
-            record.write(str(j) + ",")
+        np.random.seed(None)                                                # New random seed
 
     record.close()
 
@@ -115,7 +110,7 @@ if (data.shape != (EXAMPLES, DIMENSIS)):                            # Sanity che
     exit(1)
 
 ## Non-hierarchical clustering - K-Means algorithm
-part2_1(data, 30)
+#part2_1(data, 30)
 
-k = [2, 4, 6, 8, 10, 12, 14]
+k = [i for i in range(2, 11)]
 part2_2(data, 10, k)
