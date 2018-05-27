@@ -39,6 +39,8 @@ def main():
 	#calculates center of data
 	mu = calc_center(data)
 	
+	plt.plot(mu)
+	plt.savefig('center.pdf')
 	#print("Center:\n", mu)
 	np.savetxt("center.csv", mu, delimiter=",")
 
@@ -51,8 +53,8 @@ def main():
 	e_val, e_vect = np.linalg.eig(cov)
 	top_val, top_vect = find_top(e_val,e_vect)
 	#plt.plot(top_val)
-	plt.plot(top_vect)
-	plt.savefig('test.pdf')
+	#plt.plot(top_vect)
+	#plt.savefig('test.pdf')
 	#print("Top 10 Eigen Values:\n", top_val)
 	#print("Top 10 Eigen Vectors:\n", top_vect)
 	np.savetxt("eigenvalue.csv", top_val, delimiter=",")
