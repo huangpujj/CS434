@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib
 
+# This backend allows saving figures without a display
 matplotlib.use('Agg')
 np.set_printoptions(threshold=np.inf)
 
@@ -53,8 +54,9 @@ def main():
 	e_val, e_vect = np.linalg.eig(cov)
 	top_val, top_vect = find_top(e_val,e_vect)
 	#plt.plot(top_val)
-	#plt.plot(top_vect)
-	#plt.savefig('test.pdf')
+	plt.clf()
+	plt.plot(top_vect)
+	plt.savefig('eigenvectors.pdf')
 	#print("Top 10 Eigen Values:\n", top_val)
 	#print("Top 10 Eigen Vectors:\n", top_vect)
 	np.savetxt("eigenvalue.csv", top_val, delimiter=",")
