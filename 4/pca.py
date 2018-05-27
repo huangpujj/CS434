@@ -41,7 +41,11 @@ def main():
 	mu = calc_center(data)
 	
 	plt.plot(mu)
+	plt.title('Dataset Center/Mean')
+	plt.ylabel('Digit Mean')
+	plt.xlabel('Data Point')
 	plt.savefig('center.pdf')
+	
 	#print("Center:\n", mu)
 	np.savetxt("center.csv", mu, delimiter=",")
 
@@ -53,10 +57,15 @@ def main():
 	#find eigenvalues/eigenvectors
 	e_val, e_vect = np.linalg.eig(cov)
 	top_val, top_vect = find_top(e_val,e_vect)
+	
 	#plt.plot(top_val)
 	plt.clf()
+	plt.title('Top 10 Eigenvectors')
+	plt.ylabel('Magnitude of Covariance (?)')
+	plt.xlabel('Dimension')
 	plt.plot(top_vect)
 	plt.savefig('eigenvectors.pdf')
+	
 	#print("Top 10 Eigen Values:\n", top_val)
 	#print("Top 10 Eigen Vectors:\n", top_vect)
 	np.savetxt("eigenvalue.csv", top_val, delimiter=",")
