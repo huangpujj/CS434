@@ -34,17 +34,21 @@ def main():
    
     #calculates center of data
     mu = calc_center(data)
-    print("Center:\n", mu)
+    #print("Center:\n", mu)
+    np.savetxt("center.csv", mu, delimiter=",")
 
     #calculates the covariance
     cov = calc_covariance(data,mu)
-    print("Covariance:\n", cov)
+    #print("Covariance:\n", cov)
+    np.savetxt("covariance.csv", cov, delimiter=",")
 
     #find eigenvalues/eigenvectors
     e_val, e_vect = np.linalg.eig(cov)
     top_val, top_vect = find_top(e_val,e_vect)
-    print("Top 10 Eigen Values:\n", top_val)
-    print("Top 10 Eigen Vectors:\n", top_vect)
+    #print("Top 10 Eigen Values:\n", top_val)
+    #print("Top 10 Eigen Vectors:\n", top_vect)
+    np.savetxt("eigenvalue.csv", top_val, delimiter=",")
+    np.savetxt("eigenvector.csv", top_vect, delimiter=",")
     return
 
 if __name__ == "__main__":
