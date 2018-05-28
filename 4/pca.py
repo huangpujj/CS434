@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib
+from PIL import Image
 
 # This backend allows saving figures without a display
 matplotlib.use('Agg')
@@ -37,14 +38,21 @@ def find_top(e_val, e_vect):
 def main():
 	data = np.genfromtxt("data/data-1.txt", delimiter=',')
 	
-	#calculates center of data
+	# calculates center of data
 	mu = calc_center(data)
 	
+	# create our test image
+	mat = np.reshape(mu,(28,28))
+	img = Image.fromarray(mat)
+	img = img.convert('RGB')
+	img.save("test.bmp")
+	
+	plt.clf()
 	plt.plot(mu)
-	plt.title('Dataset Center/Mean')
-	plt.ylabel('Digit Mean')
-	plt.xlabel('Data Point')
-	plt.savefig('center.pdf')
+	plt.title('Dataset Mean')
+	plt.ylabel('Average Grayscale Value')
+	plt.xlabel('Data Point (Pixel)')
+	plt.savefig('center.pdf', cmap='gray')
 	
 	#print("Center:\n", mu)
 	np.savetxt("center.csv", mu, delimiter=",")
