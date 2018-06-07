@@ -54,7 +54,7 @@ class DiabetesDataset(Dataset):
 			diag = torch.tensor(torch.from_numpy(concat_diag), dtype=torch.float64)
 
 			self.x_data = batch.float()
-			self.y_data = diag.float()
+			self.y_data = diag.long()
 
 	def __getitem__(self, index):
 		return self.x_data[index], self.y_data[index]
@@ -88,7 +88,7 @@ class Network(nn.Module):
 		super(Network, self).__init__()
 		self.fc1 = nn.Linear(1, 7*8*1)	
 		self.fc1Drop = nn.Dropout(DROPOUT)	
-		self.fc2 = nn.Linear(100, 10)
+		self.fc2 = nn.Linear(7*8*1, 10)
 
 		self.fcm1 = nn.Linear(3*32*32, 50)
 		self.fcm2 = nn.Linear(50,50)
