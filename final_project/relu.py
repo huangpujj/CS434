@@ -34,36 +34,30 @@ kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 
 class DiabetesDataset(Dataset):
 	def __init__(self):
-		xy = np.loadtxt('./data/part1/Subject_2_part1.csv', delimiter=',', usecols=(1, 2, 3, 4, 5, 6, 7, 8, 9), dtype=np.float32)
-		self.len = xy.shape[0]
-		batch = torch.tensor((), dtype=torch.float64)
-		diag = torch.tensor((), dtype=torch.float64)
-		
-		concat_batch = []
-		concat_diag = []
-		
-		for i, row in enumerate(xy):
-			new_batch = []
-			if i+7 <= self.len:
-				for j in range(i, i+7):
-					new_batch = [x for x in itertools.chain(new_batch, xy[j, 0:8])]
-					if j == i+6:
-						last = xy[j, [-1]]
-			else:
-				continue
-				
-			concat_batch.append(new_batch)
-			concat_diag = np.append(concat_diag, last)
-		
-		concat_batch = np.array(concat_batch)
+			xy = np.loadtxt('./data/part1/Subject_2_part1.csv', delimiter=',', usecols=(1, 2, 3, 4, 5, 6, 7, 8, 9), dtype=np.float32)
+			self.len = xy.shape[0]
+			batch = torch.tensor((), dtype=torch.float64)
+			diag = torch.tensor((), dtype=torch.float64)
+			
+			concat_batch = []
+			concat_diag = []
+			
+			for i, row in enumerate(xy):				
+				if i+7 <= self.len:
+					for j in range(i, i+7):
+						new_tensor = torch.tensor(torch.from_numpy(xy[j, 0:8]), dtype=torch.float64)	# not including hypo			
+						batch = torch.cat((batch, new_tensor), 0)
+						if j == i+6:
+							last = xy[j, [-1]]
+				concat_diag = np.append(concat_diag, last)
 
-		batch = torch.tensor(torch.from_numpy(concat_batch), dtype=torch.float64)
-		diag = torch.tensor(torch.from_numpy(concat_diag), dtype=torch.float64)
-		print batch
-		print diag
-		print "\n\n"
-		self.x_data = batch
-		self.y_data = diag
+			diag = torch.tensor(torch.from_numpy(concat_diag), dtype=torch.float64)
+
+			print batch
+			print diag
+
+			self.x_data = batch
+			self.y_data = diag
 
 	def __getitem__(self, index):
 		return self.x_data[index], self.y_data[index]
