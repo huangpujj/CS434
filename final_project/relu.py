@@ -59,8 +59,9 @@ class DiabetesDataset(Dataset):
 
 		batch = torch.tensor(torch.from_numpy(concat_batch), dtype=torch.float64)
 		diag = torch.tensor(torch.from_numpy(concat_diag), dtype=torch.float64)
-		print batch.shape
-		print diag.shape
+		print batch
+		print diag
+		print "\n\n"
 		self.x_data = batch
 		self.y_data = diag
 
