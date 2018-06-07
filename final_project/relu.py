@@ -42,7 +42,7 @@ class DiabetesDataset(Dataset):
 		batch = torch.tensor((), dtype=torch.float64)
 		diag = torch.tensor((), dtype=torch.float64)
 		
-		concat_batch = []
+		concat_batch = np.empty((0,7), float)
 		concat_diag = []
 		
 		for i, row in enumerate(xy):
@@ -50,23 +50,21 @@ class DiabetesDataset(Dataset):
 			
 			if i+7 <= self.len:
 				for j in range(i, i+7):
-					new_batch = [x for x in itertools.chain(new_batch, xy[j, 0:8])]
+					new_batch = np.array([xy[j, 0:8]])	# not including event
 					# new_batch.append(xy[j, 0:8])
-					#new_tensor = torch.from_numpy(xy[j, 0:8])			# not including hypo
-					#new_batch = torch.cat((new_batch, new_tensor), 0)
-					if j == i+6:
+					# new_tensor = torch.from_numpy(xy[j, 0:8])			
+					# new_batch = torch.cat((new_batch, new_tensor), 0)
+					if j == i+6:						# Check if there's an event in this series
 						last = xy[j, [-1]]
 
-			concat_batch.append(new_batch)
+			concat_batch = np.append(concat_batch, new_batch)
 			concat_diag = np.append(concat_diag, last)
-
-			if i+7 == 11: # For testing purposes
-				break
-
-		concat_batch = np.asarray(concat_batch)
-
+		
 		batch = torch.tensor(torch.from_numpy(concat_batch), dtype=torch.float64)
 		diag = torch.tensor(torch.from_numpy(concat_diag), dtype=torch.float64)
+
+		print batch
+		print diag
 
 		self.x_data = batch
 		self.y_data = diag
@@ -83,7 +81,7 @@ train_loader = DataLoader(dataset=dataset,
 						  batch_size=1,
 						  shuffle=False,
 						  num_workers=2)
-'''
+
 for epoch in range(2):
 	for i, data in enumerate(train_loader, 0):
 		# get the inputs
@@ -94,7 +92,7 @@ for epoch in range(2):
 
 		# Run your training process
 print(epoch, i, "inputs", inputs.data, "labels", labels.data)
-'''
+
 # --- Global Statements End---
 
 # https://pytorch.org/docs/master/nn.html
@@ -116,7 +114,7 @@ class Network(nn.Module):
 		return F.log_softmax(self.fc2(x))
 	
 	def relu(self,x):
-		x = x.view(-1, 32)
+		x = x.view(-1, 1)
 		x = F.relu(self.fc1(x))
 		x = self.fc1Drop(x)
 		return F.log_softmax(self.fc2(x))
