@@ -50,7 +50,7 @@ class DiabetesDataset(Dataset):
 					continue
 				else:
 					return False	# Window is not continuous
-			return True				# Window is continuous
+		return True					# Window is continuous
 
 	def __init__(self, data, indice):
 		xy = np.loadtxt(data, delimiter=',', usecols=(1, 2, 3, 4, 5, 6, 7, 8, 9), dtype=np.float32)
@@ -80,13 +80,14 @@ class DiabetesDataset(Dataset):
 
 		batch = torch.tensor(torch.from_numpy(concat_batch), dtype=torch.float64)
 		diag = torch.tensor(torch.from_numpy(concat_diag), dtype=torch.float64)
-		print batch
-		print diag
-		print batch.shape
-		print diag.shape
-		print "\n\n"
 		self.x_data = batch.float()
 		self.y_data = diag
+
+		print self.x_data
+		print self.y_data
+		print self.x_data.shape
+		print self.y_data.shape
+		print "\n\n"
 
 	def __getitem__(self, index):
 		return self.x_data[index], self.y_data[index]
