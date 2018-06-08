@@ -70,12 +70,11 @@ class DiabetesDataset(Dataset):
 					new_batch = [x for x in itertools.chain(new_batch, xy[j, 0:8])]
 					if j == i+6:
 						last = xy[j, [-1]]
+				concat_batch.append(new_batch)
+				concat_diag = np.append(concat_diag, last)
 			else:
-				continue
+				continue			# If window size is not 7 or if the contents of the window is not continuous, skip
 			
-			concat_batch.append(new_batch)
-			concat_diag = np.append(concat_diag, last)
-		
 		concat_batch = np.array(concat_batch)
 
 		batch = torch.tensor(torch.from_numpy(concat_batch), dtype=torch.float64)
