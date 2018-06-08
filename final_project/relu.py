@@ -17,23 +17,16 @@ import numpy as np
 learningRate = 0.1
 epochs = 1
 batch_size = 20
-
-if (len(sys.argv) > 1):
-	DROPOUT = float(sys.argv[1])
-	MOMENTUM = float(sys.argv[2])
-	WEIGHT_DECAY = float(sys.argv[3])
-else:
-	DROPOUT = float(0.0)
-	MOMENTUM = float(0.0)
-	WEIGHT_DECAY = float(0.0)
+input_size = 56 		# Input size is 7*8
+hidden_size_1 = 300
+hidden_size_2 = 100
+num_classes = 8
 
 cuda = torch.cuda.is_available()
 
 kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 
-
 class DiabetesDataset(Dataset):
-
 	# Retrieves all indices
 	def get_indice(self, indice = False):
 		self.indice = []
@@ -81,9 +74,9 @@ class DiabetesDataset(Dataset):
 		self.len = self.x_data.shape[0]
 		# print self.x_data
 		# print self.y_data
-		print self.x_data.shape
-		print self.y_data.shape
-		print "\n\n"
+		#print self.x_data.shape
+		#print self.y_data.shape
+		#print "\n\n"
 
 	def __getitem__(self, index):
 		window = torch.tensor(torch.from_numpy(self.x_data[index]))
@@ -94,7 +87,25 @@ class DiabetesDataset(Dataset):
 
 	def __len__(self):
 		return self.len
+						  
+# --- Global Statements End---
 
+# Neural Network Model 1 hidden layer with relu activation function
+class Net(nn.Module):
+	def __init__(self, input_size, h1, h2, num_classes):
+		super(Net, self).__init__()
+		self.fc1 = nn.Linear(input_size, h1)	
+		self.fc2 = nn.Linear(h1, h2)
+		self.fc3 = nn.Linear(h2, num_classes)
+		self.relu = nn.ReLU()
+	
+	def forward(self, x):
+		out = self.fc1(x)
+		out = self.relu(out)
+		out = self.fc2(out)
+		out = self.relu(out)
+		out = self.fc3(out)
+		return F.log_softmax(out)
 
 dataset = DiabetesDataset('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
 train_loader = DataLoader(dataset=dataset,
@@ -107,60 +118,40 @@ validation_loader = DataLoader(dataset=dataset1,
 						  batch_size=1,
 						  shuffle=False,
 						  num_workers=1) 
-						  
-# --- Global Statements End---
 
-# https://pytorch.org/docs/master/nn.html
-class Network(nn.Module):
-	def __init__(self):
-		super(Network, self).__init__()
-		self.fc1 = nn.Linear(7*8, 7*8)	
-		self.fc1Drop = nn.Dropout(DROPOUT)	
-		self.fc2 = nn.Linear(7*8, 8)
-		self.relu_1 = nn.ReLU()
-	
-	def relu(self, x):
-		#x = x.view(-1, 7*8)
-		x = self.fc1(x)
-		x = self.relu_1(x)
-		x = self.fc1Drop(x)
-		x = self.fc2(x)
-		return F.log_softmax(x)
-
-# --- Relu Functions Start ---
-
-model = Network()
+model = Net(input_size, hidden_size_1, hidden_size_2, num_classes)
 if cuda:
 	model.cuda()
+
 criterion = nn.CrossEntropyLoss()  
 #optimizer = optim.SGD(model.parameters(), lr=rate)
 optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)  
 
-def train_relu(model, epoch, log_interval = 100):
-	model.train()
+def train(model, epoch, log_interval = 100):
+	#model.train()
 	for batch_idx, (data, target) in enumerate(train_loader):
 		if cuda:
 			data, target = data.cuda(), target.cuda()
 		# Convert torch tensor to variable
 		data, target = Variable(data), Variable(target)
 		
-		# Forward + backward + optimize
-		optimizer.zero_grad()	# zero the gradient buffer
-		output = model.relu(data)
+		# forward + backward + optimize
+		optimizer.zero_grad()
+		output = model(data)
 		loss = criterion(output, target)
 		loss.backward()
 		optimizer.step()
 		
 		if batch_idx % log_interval == 0:
-			print('RELU -- Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+			print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
 				epoch, batch_idx * len(data), len(train_loader.dataset),
 				100. * batch_idx / len(train_loader), loss.data.item()))
 	
-def validate_relu(model, loss_vector, accuracy_vector):
+def validate(model, loss_vector, accuracy_vector):
 	model.eval()
 	val_loss, correct = 0, 0
 	for data, target in validation_loader:
-		output = model.relu(data)
+		output = model(data)
 		val_loss += criterion(output, target).data.item()
 		pred = output.data.max(1)[1]
 		correct += pred.eq(target.data).cpu().sum()
@@ -176,11 +167,12 @@ def validate_relu(model, loss_vector, accuracy_vector):
 # --- Relu Functions End ---
 
 def main():		
-	print("Learning Rate: " + str(learningRate))
-
 	lossv, accv = [], []
+
+	print("Learning Rate: " + str(learningRate))
+	
 	for epoch in range(1, epochs + 1):
-		train_relu(model, epoch)
-		validate_relu(model, lossv, accv)
+		train(model, epoch)
+		validate(model, lossv, accv)
 
 main()
