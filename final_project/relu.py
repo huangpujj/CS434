@@ -73,8 +73,6 @@ class DiabetesDataset(Dataset):
 						last = xy[j, [-1]]
 				batch.append(new_batch)
 				labels = np.append(labels, last)
-				if i+7 == 7: # For testing purposes
-					break
 			else:
 				continue			# If window size is not 7 or if the contents of the window is not continuous, skip
 
@@ -82,13 +80,13 @@ class DiabetesDataset(Dataset):
 
 		self.x_data = batch
 		self.y_data = labels
-		'''
+		
 		print self.x_data
 		print self.y_data
 		print self.x_data.shape
 		print self.y_data.shape
 		print "\n\n"
-		'''
+		
 
 	def __getitem__(self, index):
 		window = torch.tensor(torch.from_numpy(self.x_data[index]))
@@ -129,7 +127,7 @@ class Network(nn.Module):
 		self.fc2 = nn.Linear(7*8*1, 7*8*1)
 	
 	def relu(self, x):
-		#x = x.view(-1, 7*8*1)
+		x = x.view(-1, 7*8*1)
 		x = F.relu(self.fc1(x))
 		x = self.fc1Drop(x)
 		return F.log_softmax(self.fc2(x))
