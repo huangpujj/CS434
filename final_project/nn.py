@@ -13,14 +13,18 @@ import itertools
 
 import numpy as np
 
-# --- Global Statements Start ---
-learningRate = 0.1
+#	---	Global Statements Start	---
+
+k = 10					# K-fold validation
 epochs = 1
 batch_size = 20
+num_classes = 8
 input_size = 56 		# Input size is 7*8
 hidden_size_1 = 300
 hidden_size_2 = 100
-num_classes = 8
+learningRate = 0.001
+
+#	---	Global Statements End	---
 
 cuda = torch.cuda.is_available()
 
@@ -49,7 +53,7 @@ class DiabetesDataset(Dataset):
 
 	def __init__(self, data, indice):
 		xy = np.loadtxt(data, delimiter=',', usecols=(1, 2, 3, 4, 5, 6, 7, 8, 9), dtype=np.float32)
-		
+		data_total_len = xy.shape[0]
 		self.get_indice(indice)
 
 		batch = []
@@ -57,7 +61,7 @@ class DiabetesDataset(Dataset):
 
 		for i, row in enumerate(xy):
 			new_batch = []
-			if  i+7 <= xy.shape[0] and self.check_window(i, i+7):
+			if  i+7 <= data_total_len and self.check_window(i, i+7):
 				for j in range(i, i+7):
 					new_batch = [x for x in itertools.chain(new_batch, xy[j, 0:8])]
 					if j == i+6:
@@ -87,10 +91,8 @@ class DiabetesDataset(Dataset):
 
 	def __len__(self):
 		return self.len
-						  
-# --- Global Statements End---
 
-# Neural Network Model 1 hidden layer with relu activation function
+# Neural Network Model, 1 hidden layer, relu activation function
 class Net(nn.Module):
 	def __init__(self, input_size, h1, h2, num_classes):
 		super(Net, self).__init__()
@@ -107,26 +109,6 @@ class Net(nn.Module):
 		out = self.fc3(out)
 		return out
 		#return F.log_softmax(out)
-
-dataset = DiabetesDataset('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
-train_loader = DataLoader(dataset=dataset,
-						  batch_size=1,
-						  shuffle=False,
-						  num_workers=1)
-
-dataset1 = DiabetesDataset('./data/part1/Subject_7_part1.csv', './data/part1/list_7_part1.csv')
-validation_loader = DataLoader(dataset=dataset1,
-						  batch_size=1,
-						  shuffle=False,
-						  num_workers=1) 
-
-model = Net(input_size, hidden_size_1, hidden_size_2, num_classes)
-if cuda:
-	model.cuda()
-
-criterion = nn.CrossEntropyLoss()  
-#optimizer = optim.SGD(model.parameters(), lr=rate)
-optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)  
 
 def train(model, epoch, log_interval = 100):
 	#model.train()
@@ -148,32 +130,45 @@ def train(model, epoch, log_interval = 100):
 				epoch, batch_idx * len(data), len(train_loader.dataset),
 				100. * batch_idx / len(train_loader), loss.data.item()))
 	
-def validate(model, loss_vector, accuracy_vector):
-	model.eval()
-	val_loss, correct = 0, 0
-	for data, target in validation_loader:
-		output = model(data)
-		val_loss += criterion(output, target).data.item()
-		pred = output.data.max(1)[1]
-		correct += pred.eq(target.data).cpu().sum()
+def validate(model):
+	#model.eval()
+	total, correct = 0, 0
+	for data, labels in validation_loader:
+		outputs = model(data)
+		_, predicted = torch.max(outputs.data, 1)
+		total += labels.size(0)
+		correct += (predicted == labels).sum()
+	print('  Correct:	%d' % correct)
+	print('    Total:	%d' % total)
+	print(' Accuracy:	%d %%' % (100 * correct / total))
 
-	val_loss /= len(validation_loader)
-	loss_vector.append(val_loss)
 
-	accuracy = 100 * correct / len(validation_loader.dataset)
-	accuracy_vector.append(accuracy)
-	print('\n\tValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-		val_loss, correct, len(validation_loader.dataset), accuracy))
+dataset = DiabetesDataset('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
+train_loader = DataLoader(dataset=dataset,
+						  batch_size=1,
+						  shuffle=False,
+						  num_workers=2)
 
-# --- Relu Functions End ---
+dataset1 = DiabetesDataset('./data/part1/Subject_7_part1.csv', './data/part1/list_7_part1.csv')
+validation_loader = DataLoader(dataset=dataset1,
+						  batch_size=1,
+						  shuffle=False,
+						  num_workers=2) 
+
+model = Net(input_size, hidden_size_1, hidden_size_2, num_classes)
+if cuda:
+	model.cuda()
+
+criterion = nn.CrossEntropyLoss()  
+#optimizer = optim.SGD(model.parameters(), lr=rate)
+optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)  
 
 def main():		
-	lossv, accv = [], []
-
 	print("Learning Rate: " + str(learningRate))
+
 	for epoch in range(1, epochs + 1):
 		print("\tEpoch\t\tInterval\t\tLoss")
 		train(model, epoch)
-		validate(model, lossv, accv)
+		validate(model)
 
 main()
