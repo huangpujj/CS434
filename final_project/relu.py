@@ -35,33 +35,34 @@ kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 class DiabetesDataset(Dataset):
 
 	# Retrieves all indices
-	def get_indice(self, indice):
+	def get_indice(self, indice = False):
 		self.indice = []
-		for line in open(indice):
-			self.indice.append(int(line))
+		if indice is not False:
+			for line in open(indice):
+				self.indice.append(int(line))
 	
 	# Checks if window[start:end] is a continuous block
 	def check_window(self, start, end):
-		array = self.indice[start:end]
-		for i, x in enumerate(array):
-			if i + 1 < len(array):
-				temp = x + 1
-				if temp == array[i+1]:
-					continue
-				else:
-					return False	# Window is not continuous
-		return True					# Window is continuous
+		if len(self.indice) != 0:
+			array = self.indice[start:end]
+			for i, x in enumerate(array):
+				if i + 1 < len(array):
+					temp = x + 1
+					if temp == array[i+1]:
+						continue
+					else:
+						return False	# Window is not continuous
+		return True						# Window is continuous
 
 	def __init__(self, data, indice):
 		xy = np.loadtxt(data, delimiter=',', usecols=(1, 2, 3, 4, 5, 6, 7, 8, 9), dtype=np.float32)
-		self.len = xy.shape[0]
-		batch = torch.tensor((), dtype=torch.float64)
-		diag = torch.tensor((), dtype=torch.float64)
 		
+		self.len = xy.shape[0]
+
 		self.get_indice(indice)
 
-		concat_batch = []
-		concat_diag = []
+		batch = []
+		labels = []
 
 		for i, row in enumerate(xy):
 			new_batch = []
@@ -70,26 +71,31 @@ class DiabetesDataset(Dataset):
 					new_batch = [x for x in itertools.chain(new_batch, xy[j, 0:8])]
 					if j == i+6:
 						last = xy[j, [-1]]
-				concat_batch.append(new_batch)
-				concat_diag = np.append(concat_diag, last)
+				batch.append(new_batch)
+				labels = np.append(labels, last)
+				if i+7 == 7: # For testing purposes
+					break
 			else:
 				continue			# If window size is not 7 or if the contents of the window is not continuous, skip
-			
-		concat_batch = np.array(concat_batch)
 
-		batch = torch.tensor(torch.from_numpy(concat_batch), dtype=torch.float64)
-		diag = torch.tensor(torch.from_numpy(concat_diag), dtype=torch.float64)
-		self.x_data = batch.float()
-		self.y_data = diag
+		batch = np.array(batch)
 
+		self.x_data = batch
+		self.y_data = labels
+		'''
 		print self.x_data
 		print self.y_data
 		print self.x_data.shape
 		print self.y_data.shape
 		print "\n\n"
+		'''
 
 	def __getitem__(self, index):
-		return self.x_data[index], self.y_data[index]
+		window = torch.tensor(torch.from_numpy(self.x_data[index]))
+		label = torch.tensor(self.y_data[index], dtype=torch.float64)
+		#print window.type()
+		#print label
+		return window, label
 
 	def __len__(self):
 		return self.len
@@ -99,7 +105,7 @@ dataset = DiabetesDataset('./data/part1/Subject_2_part1.csv', './data/part1/list
 train_loader = DataLoader(dataset=dataset,
 						  batch_size=1,
 						  shuffle=False,
-						  num_workers=2)
+						  num_workers=1)
 '''
 for epoch in range(2):
 	for i, data in enumerate(train_loader, 0):
@@ -120,7 +126,7 @@ class Network(nn.Module):
 		super(Network, self).__init__()
 		self.fc1 = nn.Linear(1, 7*8*1)	
 		self.fc1Drop = nn.Dropout(DROPOUT)	
-		self.fc2 = nn.Linear(7*8*1, 1)
+		self.fc2 = nn.Linear(7*8*1, 7*8*1)
 
 		self.fcm1 = nn.Linear(3*32*32, 50)
 		self.fcm2 = nn.Linear(50,50)
