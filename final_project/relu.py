@@ -14,8 +14,8 @@ import itertools
 import numpy as np
 
 # --- Global Statements Start ---
-learningRates = [0.0001, 0.001, 0.01, 0.1]
-epochs = 10
+learningRates = [0.1]
+epochs = 1
 batch_size = 32
 
 if (len(sys.argv) > 1):
@@ -33,25 +33,46 @@ kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 
 
 class DiabetesDataset(Dataset):
-	def __init__(self):
-		xy = np.loadtxt('./data/part1/Subject_2_part1.csv', delimiter=',', usecols=(1, 2, 3, 4, 5, 6, 7, 8, 9), dtype=np.float32)
+
+	# Retrieves all indices
+	def get_indice(self, indice):
+		self.indice = []
+		for line in open(indice):
+			self.indice.append(int(line))
+	
+	# Checks if window[start:end] is a continuous block
+	def check_window(self, start, end):
+		array = self.indice[start:end]
+		for i, x in enumerate(array):
+			if i + 1 < len(array):
+				temp = x + 1
+				if temp == array[i+1]:
+					continue
+				else:
+					return False	# Window is not continuous
+			return True				# Window is continuous
+
+	def __init__(self, data, indice):
+		xy = np.loadtxt(data, delimiter=',', usecols=(1, 2, 3, 4, 5, 6, 7, 8, 9), dtype=np.float32)
 		self.len = xy.shape[0]
 		batch = torch.tensor((), dtype=torch.float64)
 		diag = torch.tensor((), dtype=torch.float64)
 		
+		self.get_indice(indice)
+
 		concat_batch = []
 		concat_diag = []
-		
+
 		for i, row in enumerate(xy):
 			new_batch = []
-			if i+7 <= self.len:
+			if  i+7 <= self.len and self.check_window(i, i+7):
 				for j in range(i, i+7):
 					new_batch = [x for x in itertools.chain(new_batch, xy[j, 0:8])]
 					if j == i+6:
 						last = xy[j, [-1]]
 			else:
 				continue
-				
+			
 			concat_batch.append(new_batch)
 			concat_diag = np.append(concat_diag, last)
 		
@@ -61,8 +82,10 @@ class DiabetesDataset(Dataset):
 		diag = torch.tensor(torch.from_numpy(concat_diag), dtype=torch.float64)
 		print batch
 		print diag
+		print batch.shape
+		print diag.shape
 		print "\n\n"
-		self.x_data = batch
+		self.x_data = batch.float()
 		self.y_data = diag
 
 	def __getitem__(self, index):
@@ -72,7 +95,7 @@ class DiabetesDataset(Dataset):
 		return self.len
 
 
-dataset = DiabetesDataset()
+dataset = DiabetesDataset('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
 train_loader = DataLoader(dataset=dataset,
 						  batch_size=1,
 						  shuffle=False,
@@ -97,7 +120,7 @@ class Network(nn.Module):
 		super(Network, self).__init__()
 		self.fc1 = nn.Linear(1, 7*8*1)	
 		self.fc1Drop = nn.Dropout(DROPOUT)	
-		self.fc2 = nn.Linear(100, 10)
+		self.fc2 = nn.Linear(7*8*1, 1)
 
 		self.fcm1 = nn.Linear(3*32*32, 50)
 		self.fcm2 = nn.Linear(50,50)
