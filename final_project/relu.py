@@ -16,7 +16,7 @@ import numpy as np
 # --- Global Statements Start ---
 learningRate = 0.1
 epochs = 1
-batch_size = 32
+batch_size = 20
 
 if (len(sys.argv) > 1):
 	DROPOUT = float(sys.argv[1])
@@ -101,6 +101,12 @@ train_loader = DataLoader(dataset=dataset,
 						  batch_size=1,
 						  shuffle=False,
 						  num_workers=1)
+
+dataset1 = DiabetesDataset('./data/part1/Subject_7_part1.csv', './data/part1/list_7_part1.csv')
+validation_loader = DataLoader(dataset=dataset1,
+						  batch_size=1,
+						  shuffle=False,
+						  num_workers=1) 
 						  
 # --- Global Statements End---
 
@@ -150,7 +156,7 @@ def train_relu(model, epoch, log_interval = 100):
 				epoch, batch_idx * len(data), len(train_loader.dataset),
 				100. * batch_idx / len(train_loader), loss.data.item()))
 	
-def validate_relu(model, optimizer, loss_vector, accuracy_vector):
+def validate_relu(model, loss_vector, accuracy_vector):
 	model.eval()
 	val_loss, correct = 0, 0
 	for data, target in validation_loader:
@@ -175,6 +181,6 @@ def main():
 	lossv, accv = [], []
 	for epoch in range(1, epochs + 1):
 		train_relu(model, epoch)
-			# validate_relu(model, optimizer, lossv, accv)
+		validate_relu(model, lossv, accv)
 
 main()
