@@ -93,6 +93,12 @@ train_loader = DataLoader(dataset=dataset,
 						  batch_size=1,
 						  shuffle=False,
 						  num_workers=2)
+
+dataset = DiabetesDataset('./data/part1/Subject_7_part1.csv', './data/part1/list_7_part1.csv')
+validation_loader = DataLoader(dataset=dataset,
+						  batch_size=1,
+						  shuffle=False,
+						  num_workers=2)
 '''
 for epoch in range(2):
 	for i, data in enumerate(train_loader, 0):
@@ -158,12 +164,14 @@ def train_relu(model, optimizer, epoch, log_interval = 100):
 				epoch, batch_idx * len(data), len(train_loader.dataset),
 				100. * batch_idx / len(train_loader), loss.data.item()))
 	
-def validate_relu(model, optimizer, relu_accuracy, relu_avg_loss, loss_vector, accuracy_vector):
+def validate_relu(model, optimizer, loss_vector, accuracy_vector):
 	model.eval()
 	val_loss, correct = 0, 0
 	for data, target in validation_loader:
 		output = model.relu(data)
+		print output
 		val_loss += F.nll_loss(output, target).data.item()
+		print target
 		pred = output.data.max(1)[1]
 		correct += pred.eq(target.data).cpu().sum()
 
@@ -174,49 +182,23 @@ def validate_relu(model, optimizer, relu_accuracy, relu_avg_loss, loss_vector, a
 	accuracy_vector.append(accuracy)
 	print('\n\tValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
 		val_loss, correct, len(validation_loader.dataset), accuracy))
-	
-	relu_avg_loss.write("{:.4f},".format(val_loss))
-	relu_accuracy.write("{:.0f}%,".format(accuracy))
 
 # --- Relu Functions End ---
 
-			
-def part2():
-	p2_relu_acc = open("p2_accuracy.csv", 'w+')
-	p2_relu_acc.write("Relu Accuracy\n")
-	p2_relu_acc.write("Epochs, ")
-
-	p2_relu_avg_loss = open("p2_avg_loss.csv", 'w+')
-	p2_relu_avg_loss.write("Relu Average Loss\n")
-	p2_relu_avg_loss.write("Epochs, ")
-
-	for i in range(1, epochs + 1):
-		p2_relu_acc.write(str(i) + ",")
-		p2_relu_avg_loss.write(str(i) + ",")
-		
-	p2_relu_acc.write("\n")
-	p2_relu_avg_loss.write("\n")
-
+def main():
 	for rate in learningRates:
 		model = Network()
 		if cuda:
 			model.cuda()
 			
 		print("Learning Rate: " + str(rate))
-		p2_relu_acc.write("LR: " + str(rate) + ",")
-		p2_relu_avg_loss.write("LR: " + str(rate) + ",")
 
 		optimizer = optim.SGD(model.parameters(), lr=rate)
 
 		lossv, accv = [], []
 		for epoch in range(1, epochs + 1):
 			train_relu(model, optimizer, epoch)
-			# validate_relu(model, optimizer, p2_relu_acc, p2_relu_avg_loss, lossv, accv)
-		p2_relu_acc.write("\n")
-		p2_relu_avg_loss.write("\n")
-
-	p2_relu_acc.close()
-	p2_relu_avg_loss.close()
+			validate_relu(model, optimizer, lossv, accv)
 
 
-part2()
+main()
