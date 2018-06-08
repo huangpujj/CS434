@@ -105,7 +105,8 @@ class Net(nn.Module):
 		out = self.fc2(out)
 		out = self.relu(out)
 		out = self.fc3(out)
-		return F.log_softmax(out)
+		return out
+		#return F.log_softmax(out)
 
 dataset = DiabetesDataset('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
 train_loader = DataLoader(dataset=dataset,
@@ -143,7 +144,7 @@ def train(model, epoch, log_interval = 100):
 		optimizer.step()
 		
 		if batch_idx % log_interval == 0:
-			print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+			print('\t{}\t\t[{}/{} ({:.0f}%)] \t\t{:.6f}'.format(
 				epoch, batch_idx * len(data), len(train_loader.dataset),
 				100. * batch_idx / len(train_loader), loss.data.item()))
 	
@@ -170,8 +171,8 @@ def main():
 	lossv, accv = [], []
 
 	print("Learning Rate: " + str(learningRate))
-	
 	for epoch in range(1, epochs + 1):
+		print("\tEpoch\t\tInterval\t\tLoss")
 		train(model, epoch)
 		validate(model, lossv, accv)
 
