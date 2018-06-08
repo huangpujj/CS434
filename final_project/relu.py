@@ -33,30 +33,53 @@ kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 
 
 class DiabetesDataset(Dataset):
-	def __init__(self):
-			xy = np.loadtxt('./data/part1/Subject_2_part1.csv', delimiter=',', usecols=(1, 2, 3, 4, 5, 6, 7, 8, 9), dtype=np.float32)
-			self.len = xy.shape[0]
-			batch = torch.tensor((), dtype=torch.float64)
-			diag = torch.tensor((), dtype=torch.float64)
-			
-			concat_batch = []
-			concat_diag = []
-			
-			for i, row in enumerate(xy):				
-				if i+7 <= self.len:
-					for j in range(i, i+7):
-						new_tensor = torch.tensor(torch.from_numpy(xy[j, 0:8]), dtype=torch.float64)	# not including hypo			
-						batch = torch.cat((batch, new_tensor), 0)
-						if j == i+6:
-							last = xy[j, [-1]]
-				concat_diag = np.append(concat_diag, last)
 
-			diag = torch.tensor(torch.from_numpy(concat_diag), dtype=torch.float64)
+	# Retrieves all indices
+	def get_indice(self, indice):
+		self.indice = []
+		for line in open(indice):
+			self.indice.append(int(line))
+	
+	# Checks if window[start:end] is a continuous block
+	def check_window(self, start, end):
+		array = self.indice[start:end]
+		for i, x in enumerate(array):
+			if i + 1 < len(array):
+				temp = x + 1
+				if temp == array[i+1]:
+					continue
+				else:
+					return False	# Window is not continuous
+		return True					# Window is continuous
 
-			self.x_data = batch.float()
-			self.y_data = diag.long()
-			print self.x_data
-			print self.y_data
+	def __init__(self, data, indice):
+		xy = np.loadtxt(data, delimiter=',', usecols=(1, 2, 3, 4, 5, 6, 7, 8, 9), dtype=np.float32)
+		self.len = xy.shape[0]
+		batch = torch.tensor((), dtype=torch.float64)
+		diag = torch.tensor((), dtype=torch.float64)
+		
+		concat_batch = []
+		concat_diag = []
+		
+		for i, row in enumerate(xy):				
+			if i+7 <= self.len:
+				for j in range(i, i+7):
+					new_tensor = torch.tensor(torch.from_numpy(xy[j, 0:8]), dtype=torch.float64)	# not including hypo			
+					batch = torch.cat((batch, new_tensor), 0)
+					if j == i+6:
+						last = xy[j, [-1]]
+			concat_diag = np.append(concat_diag, last)
+
+		diag = torch.tensor(torch.from_numpy(concat_diag), dtype=torch.float64)
+
+		self.x_data = batch.float()
+		self.y_data = diag.long()
+
+		print self.x_data
+		print self.y_data
+		print self.x_data.shape
+		print self.y_data.shape
+		print "\n\n"
 
 	def __getitem__(self, index):
 		return self.x_data[index], self.y_data[index]
@@ -65,7 +88,7 @@ class DiabetesDataset(Dataset):
 		return self.len
 
 
-dataset = DiabetesDataset()
+dataset = DiabetesDataset('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
 train_loader = DataLoader(dataset=dataset,
 						  batch_size=1,
 						  shuffle=False,
