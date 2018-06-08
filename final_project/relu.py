@@ -55,6 +55,8 @@ class DiabetesDataset(Dataset):
 
 			self.x_data = batch.float()
 			self.y_data = diag.long()
+			print self.x_data
+			print self.y_data
 
 	def __getitem__(self, index):
 		return self.x_data[index], self.y_data[index]
