@@ -14,8 +14,8 @@ import itertools
 import numpy as np
 
 # --- Global Statements Start ---
-learningRates = [0.0001, 0.001, 0.01, 0.1]
-epochs = 10
+learningRates = [0.1]
+epochs = 1
 batch_size = 32
 
 if (len(sys.argv) > 1):
