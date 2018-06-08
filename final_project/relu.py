@@ -127,31 +127,12 @@ class Network(nn.Module):
 		self.fc1 = nn.Linear(1, 7*8*1)	
 		self.fc1Drop = nn.Dropout(DROPOUT)	
 		self.fc2 = nn.Linear(7*8*1, 7*8*1)
-
-		self.fcm1 = nn.Linear(3*32*32, 50)
-		self.fcm2 = nn.Linear(50,50)
-		self.fcm3 = nn.Linear(50,10)
-		
-	def sigmoid(self, x):
-		x = x.view(-1, 3*32*32)
-		x = F.sigmoid(self.fc1(x))
-		x = self.fc1Drop(x)
-		return F.log_softmax(self.fc2(x))
 	
-	def relu(self,x):
-		x = x.view(-1, 1)
+	def relu(self, x):
+		#x = x.view(-1, 7*8*1)
 		x = F.relu(self.fc1(x))
 		x = self.fc1Drop(x)
 		return F.log_softmax(self.fc2(x))
-
-	def multi_layer(self,x):
-		x = x.view(-1, 3*32*32)
-		x = F.relu(self.fcm1(x))
-		x = self.fc1Drop(x)
-		x = F.relu(self.fcm2(x))
-		x = self.fc1Drop(x)
-		return F.log_softmax(self.fcm3(x))
-
 
 # --- Relu Functions Start ---
 
@@ -190,8 +171,7 @@ def validate_relu(model, optimizer, loss_vector, accuracy_vector):
 
 # --- Relu Functions End ---
 
-			
-def part2():
+def main():
 	for rate in learningRates:
 		model = Network()
 		if cuda:
@@ -206,4 +186,4 @@ def part2():
 			train_relu(model, optimizer, epoch)
 			# validate_relu(model, optimizer, lossv, accv)
 
-part2()
+main()
