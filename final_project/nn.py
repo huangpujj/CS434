@@ -13,6 +13,8 @@ import itertools
 
 import numpy as np
 
+from sklearn.model_selection import KFold
+
 #	---	Global Statements Start	---
 
 k = 10					# K-fold validation
@@ -142,13 +144,20 @@ def kFold(data_file, indice_file):
 			batch.append(new_batch)
 			labels = np.append(labels, last)
 		else:
-			continue			# If window size is not 7 or if the contents of the window is not continuous, skip
+			continue			# If window size is not 7 or if the contents of the window is not continuous, skip this window
 
 	batch = np.array(batch)
-	test_data = batch
-	test_labels = labels
-	train_data = None
-	train_labels = None
+	
+	kf = KFold(n_splits = k)
+	for train_index, test_index in kf.split(batch):
+		# print("TRAIN:", train_index, "TEST:", test_index)
+		X_train, X_test = batch[train_index], batch[test_index]
+		y_train, y_test = labels[train_index], labels[test_index]
+
+	test_data = X_train
+	test_labels = y_train
+	train_data = X_test
+	train_labels = y_test
 
 	return test_data, test_labels, train_data, train_labels
 
@@ -160,13 +169,13 @@ train_loader = DataLoader(dataset=train_set,
 						  batch_size=1,
 						  shuffle=True,
 						  num_workers=2)
-'''
+
 test_set = DiabetesDataset(train_data, train_labels)
 validation_loader = DataLoader(dataset=test_set,
 						  batch_size=1,
 						  shuffle=False,
 						  num_workers=2) 
-'''
+
 model = Net(input_size, hidden_size_1, hidden_size_2, num_classes)
 if cuda:
 	model.cuda()
@@ -181,6 +190,6 @@ def main():
 	for epoch in range(1, epochs + 1):
 		print("\tEpoch\t\tInterval\t\tLoss")
 		train(model, epoch)
-		#validate(model)
+		validate(model)
 
 main()
