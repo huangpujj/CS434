@@ -24,7 +24,7 @@ epochs = 1
 
 batch_size = 20
 
-window_size = 3
+window_size = 2
 num_classes = 8
 
 hidden_size_1 = 300
@@ -97,20 +97,34 @@ def train(model, epoch, data_set, criterion, optimizer, log_interval = 100):
 				epoch, batch_idx * len(data), len(data_set.dataset),
 				100. * batch_idx / len(data_set), loss.data.item()))
 	
-def validate(model, valid_set):
-	total, correct = 0, 0
-	print("Predicted\tLabel")
+def validate(model, model_name, valid_set):
+	#total, correct = 0, 0
+	pred_name = str(model_name.split(".", 1)[0]) + "_pred.csv"
+	gold_name = str(model_name.split(".", 1)[0]) + "_gold.csv"
+	
+	pred = open(pred_name, 'w+')
+	gold = open(gold_name, 'w+')
+	
+	#print("Predicted\tLabel")
 	for data, labels in valid_set:
 		outputs = model(data)
 		_, predicted = torch.max(outputs.data, 1)
-		total += labels.size(0)
-		correct += (predicted == labels).sum()
-		if predicted != labels:
-			print(str(predicted) + "\t" + str(labels))
+		pred.write("0.1," + str(predicted.data.numpy()[0]) + "\n")
+		gold.write(str(labels.data.numpy()[0]) + "\n")
+		#total += labels.size(0)
+		#correct += (predicted == labels).sum()
+		#if predicted != labels:
+			#print(str(predicted) + "\t" + str(labels))
 
-	print('  Correct:	%d' % correct)
-	print('    Total:	%d' % total)
-	print(' Accuracy:	%d %%' % (100 * correct / total))
+	#print('  Correct:	%d' % correct)
+	#print('    Total:	%d' % total)
+	#print(' Accuracy:	%d %%' % (100 * correct / total))
+	gold.close()
+	pred.close()
+	print("Created " + str(pred_name))
+	print("Created "+ str(gold_name))
+	print("Run with the following command: \n\t" + "python eval_simple.py -p " + str(pred_name) + " -g " + str(gold_name) + " -o result.csv")
+
 
 # Retrieves all indices
 def get_indice(indice = False):
@@ -193,8 +207,10 @@ def run(model_name, validation):
 	if cuda:
 		model.cuda()
 	model.load_state_dict(torch.load(model_name))
-	validate(model, validation)
+	validate(model, model_name, validation)
 
+
+## Building Individual Model for Subject_2
 s2_batch, s2_label = load_data('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
 
 test_data, test_labels, train_data, train_labels = kFold(s2_batch, s2_label)
@@ -215,15 +231,28 @@ if os.path.isfile("Subject_2.pt"):
 							batch_size=1,
 							shuffle=False,
 							num_workers=2)
-							
 	print("\tPart 2: Running model Subject_2.pt")
 	run("Subject_2.pt", validation_loader)
 
-
+## Building Individual Model for Subject_7
 s7_batch, s7_label = load_data('./data/part1/Subject_7_part1.csv', './data/part1/list_7_part1.csv')
+test_data, test_labels, train_data, train_labels = kFold(s7_batch, s7_label)
 
-test_set2 = DiabetesDataset(s7_batch, s7_label)
-validation_loader2 = DataLoader(dataset=test_set2,
-						  batch_size=1,
-						  shuffle=False,
-						  num_workers=2)
+if not os.path.isfile("Subject_7.pt"):
+	train_set = DiabetesDataset(test_data, test_labels)
+	train_loader = DataLoader(dataset=train_set,
+							batch_size=1,
+							shuffle=True,
+							num_workers=2)
+
+	print("\tPart2: Training model Subject_7.pt")
+	trainModel("Subject_7.pt", train_loader)
+
+if os.path.isfile("Subject_7.pt"):
+	test_set = DiabetesDataset(train_data, train_labels)
+	validation_loader = DataLoader(dataset=test_set,
+							batch_size=1,
+							shuffle=False,
+							num_workers=2)
+	print("\tPart 2: Running model Subject_7.pt")
+	run("Subject_7.pt", validation_loader)
