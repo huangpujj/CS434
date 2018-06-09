@@ -18,20 +18,20 @@ from sklearn.model_selection import KFold
 import os.path
 #	---	Global Statements Start	---
 
-k = 15					# K-fold validation
+k = 20					# K-fold validation
 
-epochs = 1
+epochs = 2
 
-batch_size = 20
+batch_size = 5
 
-window_size = 2
+window_size = 7
 num_classes = 8
-output_size = 1
+output_size = 2
 
 hidden_size_1 = 300
 hidden_size_2 = 100
 
-learningRate = 0.0001
+learningRate = 0.01
 
 input_size = num_classes * window_size 		# Input size is 7*8
 #	---	Global Statements End	---
@@ -67,7 +67,12 @@ class Net(nn.Module):
 		super(Net, self).__init__()
 		self.fc1 = nn.Linear(input_size, h1)	
 		self.fc2 = nn.Linear(h1, h2)
-		self.fc3 = nn.Linear(h2, out_size)
+
+		self.fc2_1 = nn.Linear(h2, 20)	# More hidden layers because why not
+		self.fc2_2 = nn.Linear(20, 50)
+		self.fc2_3 = nn.Linear(50, 30) 
+
+		self.fc3 = nn.Linear(30, out_size)
 		self.relu = nn.ReLU()
 	
 	def forward(self, x):
@@ -75,9 +80,15 @@ class Net(nn.Module):
 		out = self.relu(out)
 		out = self.fc2(out)
 		out = self.relu(out)
+
+		out = self.fc2_1(out)
+		out = self.fc2_2(out)
+		out = self.fc2_3(out)
+
 		out = self.fc3(out)
-		return out
-		#return F.log_softmax(out)
+
+		#return out
+		return F.log_softmax(out, dim=0)
 
 def train(model, epoch, data_set, criterion, optimizer, log_interval = 100):
 	for batch_idx, (data, target) in enumerate(data_set):
@@ -110,7 +121,8 @@ def validate(model, model_name, valid_set):
 	for data, labels in valid_set:
 		outputs = model(data)
 		_, predicted = torch.max(outputs.data, 1)
-		pred.write("0.1," + str(predicted.data.numpy()[0]) + "\n")
+		prob = outputs.sum().data.numpy()
+		pred.write(str(prob)+"," + str(predicted.data.numpy()[0]) + "\n")
 		gold.write(str(labels.data.numpy()[0]) + "\n")
 		#total += labels.size(0)
 		#correct += (predicted == labels).sum()
@@ -162,7 +174,7 @@ def load_data(data_file, indice_file):
 
 	for i, row in enumerate(data):
 		new_batch = []
-		if  (i+window_size <= data_total_len) and (check_window(all_indice, i, i+7)):
+		if  (i+window_size <= data_total_len) and (check_window(all_indice, i, i+window_size)):
 			for j in range(i, i+window_size):
 				new_batch = [x for x in itertools.chain(new_batch, data[j, 0:8])]
 				if j == i+window_size-1:
@@ -191,9 +203,8 @@ def trainModel(model_name, training):
 	criterion = nn.CrossEntropyLoss()  
 	optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)  	
 	print("Learning Rate: " + str(learningRate))
-
+	print("\tEpoch\t\tInterval\t\tLoss")
 	for epoch in range(1, epochs + 1):
-		print("\tEpoch\t\tInterval\t\tLoss")
 		train(model, epoch, training, criterion, optimizer)
 
 	torch.save(model.state_dict(), model_name)	# Saves model
@@ -205,18 +216,35 @@ def run(model_name, validation):
 	model.load_state_dict(torch.load(model_name))
 	validate(model, model_name, validation)
 
+def print_data(train_data, train_labels, test_data, test_labels):
+	print "Training Data"
+	print train_data
+	print train_data.shape
+	print "\nTraining Labels"
+	print train_labels
+	print train_labels.shape
+
+	print "\nTest Data"
+	print test_data
+	print test_data.shape
+	print "\nTest Labels"
+	print test_labels
+	print test_labels.shape
+
 
 ## Building Individual Model for Subject_2
 s2_batch, s2_label = load_data('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
 
 train_data, train_labels, test_data, test_labels = kFold(s2_batch, s2_label)
 
+print_data(train_data, train_labels, test_data, test_labels)
+
 if not os.path.isfile("Subject_2.pt"):
 	train_set = DiabetesDataset(train_data, train_labels,)
 	train_loader = DataLoader(dataset=train_set,
-							batch_size=1,
+							batch_size=batch_size,
 							shuffle=True,
-							num_workers=2)
+							num_workers=6)
 
 	print("\tPart2: Training model Subject_2.pt")
 	trainModel("Subject_2.pt", train_loader)
@@ -224,12 +252,13 @@ if not os.path.isfile("Subject_2.pt"):
 if os.path.isfile("Subject_2.pt"):
 	test_set = DiabetesDataset(test_data, test_labels)
 	validation_loader = DataLoader(dataset=test_set,
-							batch_size=1,
+							batch_size=batch_size,
 							shuffle=False,
-							num_workers=2)
+							num_workers=6)
 	print("\tPart 2: Running model Subject_2.pt")
 	run("Subject_2.pt", validation_loader)
 
+'''
 ## Building Individual Model for Subject_7
 s7_batch, s7_label = load_data('./data/part1/Subject_7_part1.csv', './data/part1/list_7_part1.csv')
 
@@ -253,3 +282,4 @@ if os.path.isfile("Subject_7.pt"):
 							num_workers=2)
 	print("\tPart 2: Running model Subject_7.pt")
 	run("Subject_7.pt", validation_loader)
+'''
