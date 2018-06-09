@@ -15,11 +15,12 @@ import numpy as np
 
 from sklearn.model_selection import KFold
 
+import os.path
 #	---	Global Statements Start	---
 
 k = 15					# K-fold validation
 
-epochs = 2
+epochs = 1
 
 batch_size = 20
 
@@ -77,7 +78,7 @@ class Net(nn.Module):
 		return out
 		#return F.log_softmax(out)
 
-def train(model, epoch, data_set, log_interval = 100):
+def train(model, epoch, data_set, criterion, optimizer, log_interval = 100):
 	for batch_idx, (data, target) in enumerate(data_set):
 		if cuda:
 			data, target = data.cuda(), target.cuda()
@@ -146,7 +147,7 @@ def load_data(data_file, indice_file):
 
 	for i, row in enumerate(data):
 		new_batch = []
-		if  i+window_size <= data_total_len and check_window(all_indice, i, i+7):
+		if  (i+window_size <= data_total_len) and (check_window(all_indice, i, i+7)):
 			for j in range(i, i+window_size):
 				new_batch = [x for x in itertools.chain(new_batch, data[j, 0:8])]
 				if j == i+window_size-1:
@@ -173,22 +174,51 @@ def kFold(batch, labels):
 
 	return test_data, test_labels, train_data, train_labels
 
+def trainModel(model_name, training):
+	model = Net(input_size, hidden_size_1, hidden_size_2, num_classes)
+	if cuda:
+		model.cuda()
+	criterion = nn.CrossEntropyLoss()  
+	optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)  	
+	print("Learning Rate: " + str(learningRate))
+
+	for epoch in range(1, epochs + 1):
+		print("\tEpoch\t\tInterval\t\tLoss")
+		train(model, epoch, training, criterion, optimizer)
+
+	torch.save(model.state_dict(), model_name)	# Saves model
+
+def run(model_name, validation):
+	model = Net(input_size, hidden_size_1, hidden_size_2, num_classes)
+	if cuda:
+		model.cuda()
+	model.load_state_dict(torch.load(model_name))
+	validate(model, validation)
+
 s2_batch, s2_label = load_data('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
 
 test_data, test_labels, train_data, train_labels = kFold(s2_batch, s2_label)
 
-train_set = DiabetesDataset(test_data, test_labels)
+if not os.path.isfile("Subject_2.pt"):
+	train_set = DiabetesDataset(test_data, test_labels)
+	train_loader = DataLoader(dataset=train_set,
+							batch_size=1,
+							shuffle=True,
+							num_workers=2)
 
-train_loader = DataLoader(dataset=train_set,
-						  batch_size=1,
-						  shuffle=True,
-						  num_workers=2)
+	print("\tPart2: Training model Subject_2.pt")
+	trainModel("Subject_2.pt", train_loader)
 
-test_set = DiabetesDataset(train_data, train_labels)
-validation_loader = DataLoader(dataset=test_set,
-						  batch_size=1,
-						  shuffle=False,
-						  num_workers=2)
+if os.path.isfile("Subject_2.pt"):
+	test_set = DiabetesDataset(train_data, train_labels)
+	validation_loader = DataLoader(dataset=test_set,
+							batch_size=1,
+							shuffle=False,
+							num_workers=2)
+							
+	print("\tPart 2: Running model Subject_2.pt")
+	run("Subject_2.pt", validation_loader)
+
 
 s7_batch, s7_label = load_data('./data/part1/Subject_7_part1.csv', './data/part1/list_7_part1.csv')
 
@@ -197,28 +227,3 @@ validation_loader2 = DataLoader(dataset=test_set2,
 						  batch_size=1,
 						  shuffle=False,
 						  num_workers=2)
-
-model = Net(input_size, hidden_size_1, hidden_size_2, num_classes)
-if cuda:
-	model.cuda()
-
-criterion = nn.CrossEntropyLoss()  
-#optimizer = optim.SGD(model.parameters(), lr=rate)
-optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)  
-
-def trainModel():		
-	print("Learning Rate: " + str(learningRate))
-
-	for epoch in range(1, epochs + 1):
-		print("\tEpoch\t\tInterval\t\tLoss")
-		train(model, epoch, train_loader)
-		validate(model, validation_loader)
-		validate(model, validation_loader2)
-	torch.save(model.state_dict(), "Subject_2_part1.pt")	# Saves model
-
-def run(filepath):
-	model.load_state_dict(torch.load(filepath))
-	model = model.eval()
-
-trainModel()
-
