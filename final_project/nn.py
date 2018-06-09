@@ -182,12 +182,7 @@ def kFold(batch, labels):
 		X_train, X_test = batch[train_index], batch[test_index]
 		y_train, y_test = labels[train_index], labels[test_index]
 
-	test_data = X_train
-	test_labels = y_train
-	train_data = X_test
-	train_labels = y_test
-
-	return test_data, test_labels, train_data, train_labels
+	return X_train, y_train, X_test, y_test
 
 def trainModel(model_name, training):
 	model = Net(input_size, hidden_size_1, hidden_size_2, output_size)
@@ -214,10 +209,10 @@ def run(model_name, validation):
 ## Building Individual Model for Subject_2
 s2_batch, s2_label = load_data('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
 
-test_data, test_labels, train_data, train_labels = kFold(s2_batch, s2_label)
+train_data, train_labels, test_data, test_labels = kFold(s2_batch, s2_label)
 
 if not os.path.isfile("Subject_2.pt"):
-	train_set = DiabetesDataset(test_data, test_labels)
+	train_set = DiabetesDataset(train_data, train_labels,)
 	train_loader = DataLoader(dataset=train_set,
 							batch_size=1,
 							shuffle=True,
@@ -227,7 +222,7 @@ if not os.path.isfile("Subject_2.pt"):
 	trainModel("Subject_2.pt", train_loader)
 
 if os.path.isfile("Subject_2.pt"):
-	test_set = DiabetesDataset(train_data, train_labels)
+	test_set = DiabetesDataset(test_data, test_labels)
 	validation_loader = DataLoader(dataset=test_set,
 							batch_size=1,
 							shuffle=False,
@@ -237,10 +232,11 @@ if os.path.isfile("Subject_2.pt"):
 
 ## Building Individual Model for Subject_7
 s7_batch, s7_label = load_data('./data/part1/Subject_7_part1.csv', './data/part1/list_7_part1.csv')
-test_data, test_labels, train_data, train_labels = kFold(s7_batch, s7_label)
+
+train_data, train_labels, test_data, test_labels = kFold(s7_batch, s7_label)
 
 if not os.path.isfile("Subject_7.pt"):
-	train_set = DiabetesDataset(test_data, test_labels)
+	train_set = DiabetesDataset(train_data, train_labels)
 	train_loader = DataLoader(dataset=train_set,
 							batch_size=1,
 							shuffle=True,
@@ -250,7 +246,7 @@ if not os.path.isfile("Subject_7.pt"):
 	trainModel("Subject_7.pt", train_loader)
 
 if os.path.isfile("Subject_7.pt"):
-	test_set = DiabetesDataset(train_data, train_labels)
+	test_set = DiabetesDataset(test_data, test_labels)
 	validation_loader = DataLoader(dataset=test_set,
 							batch_size=1,
 							shuffle=False,
