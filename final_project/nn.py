@@ -26,6 +26,7 @@ batch_size = 20
 
 window_size = 2
 num_classes = 8
+output_size = 1
 
 hidden_size_1 = 300
 hidden_size_2 = 100
@@ -62,11 +63,11 @@ class DiabetesDataset(Dataset):
 
 # Neural Network Model, 1 hidden layer, relu activation function
 class Net(nn.Module):
-	def __init__(self, input_size, h1, h2, num_classes):
+	def __init__(self, input_size, h1, h2, out_size):
 		super(Net, self).__init__()
 		self.fc1 = nn.Linear(input_size, h1)	
 		self.fc2 = nn.Linear(h1, h2)
-		self.fc3 = nn.Linear(h2, num_classes)
+		self.fc3 = nn.Linear(h2, out_size)
 		self.relu = nn.ReLU()
 	
 	def forward(self, x):
@@ -189,7 +190,7 @@ def kFold(batch, labels):
 	return test_data, test_labels, train_data, train_labels
 
 def trainModel(model_name, training):
-	model = Net(input_size, hidden_size_1, hidden_size_2, num_classes)
+	model = Net(input_size, hidden_size_1, hidden_size_2, output_size)
 	if cuda:
 		model.cuda()
 	criterion = nn.CrossEntropyLoss()  
@@ -203,7 +204,7 @@ def trainModel(model_name, training):
 	torch.save(model.state_dict(), model_name)	# Saves model
 
 def run(model_name, validation):
-	model = Net(input_size, hidden_size_1, hidden_size_2, num_classes)
+	model = Net(input_size, hidden_size_1, hidden_size_2, output_size)
 	if cuda:
 		model.cuda()
 	model.load_state_dict(torch.load(model_name))
