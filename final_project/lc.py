@@ -1,50 +1,21 @@
 # Using Lam's code as a base to read and unpack data
-
-# Using https://github.com/CSCfi/machine-learning-scripts/blob/master/notebooks/pytorch-mnist-mlp.ipynb 
-# as a template for implementing PyTorch
-import sys
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torchvision import datasets, transforms
-from torch.autograd import Variable	# Deprecated
-from torch.utils.data import Dataset, DataLoader
-
-import itertools
-
 import numpy as np
+from sklearn.model_selection import KFold
 
-# --- Global Statements Start ---
-learningRates = [0.1]
-epochs = 1
-batch_size = 32
+k = 15					# K-fold validation
 
-if (len(sys.argv) > 1):
-	DROPOUT = float(sys.argv[1])
-	MOMENTUM = float(sys.argv[2])
-	WEIGHT_DECAY = float(sys.argv[3])
-else:
-	DROPOUT = float(0.0)
-	MOMENTUM = float(0.0)
-	WEIGHT_DECAY = float(0.0)
+# Retrieves all indices
+def get_indice(indice = False):
+	all_indice = []
+	if indice is not False:
+		for line in indice:
+			all_indice.append(int(line))
+	return all_indice
 
-cuda = torch.cuda.is_available()
-
-kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
-
-
-class DiabetesDataset(Dataset):
-
-	# Retrieves all indices
-	def get_indice(self, indice):
-		self.indice = []
-		for line in open(indice):
-			self.indice.append(int(line))
-	
-	# Checks if window[start:end] is a continuous block
-	def check_window(self, start, end):
-		array = self.indice[start:end]
+# Checks if window[start:end] is a continuous block
+def check_window(indice, start, end):
+	if len(indice) != 0:
+		array = indice[start:end]
 		for i, x in enumerate(array):
 			if i + 1 < len(array):
 				temp = x + 1
@@ -52,54 +23,45 @@ class DiabetesDataset(Dataset):
 					continue
 				else:
 					return False	# Window is not continuous
-		return True					# Window is continuous
+	return True						# Window is continuous
 
-	def __init__(self, data, indice):
-		xy = np.loadtxt(data, delimiter=',', usecols=(1, 2, 3, 4, 5, 6, 7, 8, 9), dtype=np.float32)
-		self.len = xy.shape[0]
-		batch = torch.tensor((), dtype=torch.float64)
-		diag = torch.tensor((), dtype=torch.float64)
-		
-		self.get_indice(indice)
+def load_data(data_file, indice_file):
+	data = np.loadtxt(data_file, delimiter=',', usecols=(1, 2, 3, 4, 5, 6, 7, 8, 9), dtype=np.float32)
+	
+	with open(indice_file, 'r') as f:
+   		indice = [line.strip() for line in f]
 
-		concat_batch = []
-		concat_diag = []
+	data_total_len = data.shape[0]
+	all_indice = get_indice(indice)
 
-		for i, row in enumerate(xy):
-			new_batch = []
-			if  i+7 <= self.len and self.check_window(i, i+7):
-				for j in range(i, i+7):
-					new_batch = [x for x in itertools.chain(new_batch, xy[j, 0:8])]
-					if j == i+6:
-						last = xy[j, [-1]]
-			else:
-				continue
-			
-			concat_batch.append(new_batch)
-			concat_diag = np.append(concat_diag, last)
-		
-		concat_batch = np.array(concat_batch)
+	batch = []
+	labels = []
 
-		batch = torch.tensor(torch.from_numpy(concat_batch), dtype=torch.float64)
-		diag = torch.tensor(torch.from_numpy(concat_diag), dtype=torch.float64)
-		self.x_data = batch.float()
-		self.y_data = diag
+	for i, row in enumerate(data):
+		new_batch = []
+		if  i+window_size <= data_total_len and check_window(all_indice, i, i+7):
+			for j in range(i, i+window_size):
+				new_batch = [x for x in itertools.chain(new_batch, data[j, 0:8])]
+				if j == i+window_size-1:
+					last = data[j, [-1]]
+			batch.append(new_batch)
+			labels = np.append(labels, last)
+		else:
+			continue			# If window size is not 7 or if the contents of the window is not continuous, skip this window
 
-		print self.x_data
-		print self.y_data
-		print self.x_data.shape
-		print self.y_data.shape
-		print "\n\n"
+	batch = np.array(batch)
+	return batch, labels
 
-	def __getitem__(self, index):
-		return self.x_data[index], self.y_data[index]
+def kFold(batch, labels):
+	kf = KFold(n_splits = k)
+	for train_index, test_index in kf.split(batch):
+		# print("TRAIN:", train_index, "TEST:", test_index)
+		X_train, X_test = batch[train_index], batch[test_index]
+		y_train, y_test = labels[train_index], labels[test_index]
 
-	def __len__(self):
-		return self.len
+	test_data = X_train
+	test_labels = y_train
+	train_data = X_test
+	train_labels = y_test
 
-
-dataset = DiabetesDataset('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
-train_loader = DataLoader(dataset=dataset,
-						  batch_size=1,
-						  shuffle=False,
-						  num_workers=2)
+	return test_data, test_labels, train_data, train_labels
