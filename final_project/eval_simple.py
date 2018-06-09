@@ -70,10 +70,25 @@ def get_f1(g_, p_):
             else:
                 tn += 1
 
-    p = round(tp / (tp + fp), 3)
-    r = round(tp / (tp + fn), 3)
-    f1 = round(2 * (r * p) / (r + p), 3)
-    acc = round((tp + tn) / (tp + fp + fn + tn), 3)
+    if (tp + fp) == 0:
+        p = 1.0
+    else:
+        p = round(tp / (tp + fp), 3)
+
+    if (tp + fn) == 0:
+        r = 1.0
+    else:
+        r = round(tp / (tp + fn), 3)
+
+    if (r + p) == 0.0:
+        f1 = 0.0
+    else:
+        f1 = round(2 * (r * p) / (r + p), 3)
+
+    if (tp + fp + fn + tn) == 0:
+        acc = 0.0
+    else:
+        acc = round((tp + tn) / (tp + fp + fn + tn), 3)
     
     return acc, p, r, f1
     
@@ -107,8 +122,8 @@ def evaluate(gp_data):
     #print('\nset: %s'%set_id)
     a, p, r, f1 = get_f1(g_, p_)
     auc = get_auc(g_, p_)
-    print('F1: %s \t AUC: %s'%\
-        (str(round(f1, 3)), str(round(auc, 3))))
+    print('Precision: %s \t Recall: %s \t F1: %s \t AUC: %s'%\
+        (str(round(p, 3)), str(round(r, 3)), str(round(f1, 3)), str(round(auc, 3))))
     return a, p, r, f1, auc
 
 def main(argv):
