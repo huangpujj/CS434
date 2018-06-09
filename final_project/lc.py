@@ -4,6 +4,7 @@ from sklearn.model_selection import KFold
 
 k = 15					# K-fold validation
 
+''' Parsing Code '''
 # Retrieves all indices
 def get_indice(indice = False):
 	all_indice = []
@@ -65,3 +66,10 @@ def kFold(batch, labels):
 	train_labels = y_test
 
 	return test_data, test_labels, train_data, train_labels
+	
+''' End of Parsing Code '''
+
+''' Classifier Code '''
+# Might actually need this to be L2 and descent?
+def weight(batch, labels):
+    return (np.transpose(batch).dot(labels)).dot(np.linalg.inv(np.transpose(batch).dot(batch)))   # W = (X^T * X)^-1 * X^T * Y  
