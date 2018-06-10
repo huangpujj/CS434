@@ -233,7 +233,7 @@ train_data, train_labels, test_data, test_labels = kFold(s2_batch, s2_label)
 
 print_data(train_data, train_labels, test_data, test_labels)
 '''
-if not os.path.isfile("subject1.pt"):
+if not os.path.isfile("subject1.pt"):									# Uncomment to train
 	train_set = DiabetesDataset(train_data, train_labels,)
 	train_loader = DataLoader(dataset=train_set,
 							batch_size=batch_size,
@@ -243,14 +243,14 @@ if not os.path.isfile("subject1.pt"):
 	print("\tPart2: Training model subject1.pt")
 	trainModel("subject1.pt", train_loader)
 '''
-if os.path.isfile("subject1_m1.pt"):
+if os.path.isfile("results/subject1_models/subject1_model0.pt"):
 	test_set = DiabetesDataset(test_data, test_labels)
 	validation_loader = DataLoader(dataset=test_set,
 							batch_size=batch_size,
 							shuffle=False,
 							num_workers=6)
 	print("\tPart 2: Running model subject1.pt")
-	run("subject1_m1.pt", validation_loader)
+	run("results/subject1_models/subject1_model0.pt", validation_loader)
 
 '''
 ## Building Individual Model for Subject_7
