@@ -235,6 +235,7 @@ d = np.concatenate((s6_label, s9_label), axis=0)
 big_label = np.concatenate((c, d), axis=0)
 
 train_data, train_labels, test_data, test_labels = kFold(big_batch, big_label)
+
 '''
 if not os.path.isfile("general.pt"):
 	train_set = DiabetesDataset(train_data, train_labels)
@@ -247,11 +248,11 @@ if not os.path.isfile("general.pt"):
 	trainModel("general.pt", train_loader)
 '''
 
-if os.path.isfile("general_m3.pt"):
+if os.path.isfile("./results/general_models/general_m0.pt"):
 	test_set = DiabetesDataset(test_data, test_labels)
 	validation_loader = DataLoader(dataset=test_set,
 							batch_size=batch_size,
 							shuffle=False,
 							num_workers=6)
-	print("\tPart 2: Running model general_m3.pt")
-	run("general_m3.pt", validation_loader)
+	print("\tPart 2: Running model general_m0.pt")
+	run("./results/general_models/general_m0.pt", validation_loader)
