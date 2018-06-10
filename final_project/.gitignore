@@ -1,4 +1,3 @@
 *.pyc
-*.pt
 *pred.csv
 *gold.csv

@@ -20,15 +20,15 @@ import os.path
 
 k = 20				# K-fold validation
 
-epochs = 10
+epochs = 3
 
-batch_size = 5
+batch_size = 4
 
 window_size = 7
 num_classes = 8
 output_size = 2
 
-learningRate = 0.000000002
+learningRate = 0.00000001
 
 input_size = num_classes * window_size 		# Input size is 7*8
 #	---	Global Statements End	---
@@ -62,19 +62,19 @@ class Net(nn.Module):
 	def __init__(self, input_size, out_size):
 		super(Net, self).__init__()
 		self.fc_in = nn.Linear(input_size, 784)
-		self.l1 = nn.Linear(784, 30)
-		#self.l1 = nn.Linear(784, 520)
-		#self.l2 = nn.Linear(520, 320)
+		#self.l1 = nn.Linear(784, 10)
+		self.l1 = nn.Linear(784, 200)
+		#self.l2 = nn.Linear(520, 10)
 		#self.l3 = nn.Linear(320, 240)
 		#self.l4 = nn.Linear(240, 120)
 		#self.l5 = nn.Linear(120, 10)
-		self.fc3_out = nn.Linear(30, out_size)
+		self.fc3_out = nn.Linear(200, out_size)
 		self.relu = nn.ReLU()
 	
 	def forward(self, x):
 		x = self.relu(self.fc_in(x))
-		x = self.relu(self.l1(x))
 		#x = self.relu(self.l1(x))
+		x = self.relu(self.l1(x))
 		#x = self.relu(self.l2(x))
 		#x = self.relu(self.l3(x))
 		#x = self.relu(self.l4(x))
@@ -102,8 +102,8 @@ def train(model, epoch, data_set, criterion, optimizer, log_interval = 100):
 	
 def validate(model, model_name, valid_set):
 	#total, correct = 0, 0
-	pred_name = str(model_name.split(".", 1)[0]) + "_pred.csv"
-	gold_name = str(model_name.split(".", 1)[0]) + "_gold.csv"
+	pred_name = str(model_name.split(".", 1)[0]) + "_pred1.csv"
+	gold_name = str(model_name.split(".", 1)[0]) + "_gold1.csv"
 	
 	pred = open(pred_name, 'w+')
 	gold = open(gold_name, 'w+')
@@ -114,7 +114,7 @@ def validate(model, model_name, valid_set):
 		_, predicted = torch.max(outputs.data, 1)
 		prob = outputs.sum().data.numpy()
 		prediction = outputs.data.max(1, keepdim=True)[1]
-		print str(prediction) + "\t" + str(labels)
+		#print str(prediction) + "\t" + str(labels)
 		pred.write(str(prob)+"," + str(predicted.data.numpy()[0]) + "\n")
 		gold.write(str(labels.data.numpy()[0]) + "\n")
 		#total += labels.size(0)
@@ -233,24 +233,24 @@ train_data, train_labels, test_data, test_labels = kFold(s2_batch, s2_label)
 
 print_data(train_data, train_labels, test_data, test_labels)
 
-if not os.path.isfile("Subject_2.pt"):
+if not os.path.isfile("subject1.pt"):
 	train_set = DiabetesDataset(train_data, train_labels,)
 	train_loader = DataLoader(dataset=train_set,
 							batch_size=batch_size,
 							shuffle=True,
 							num_workers=6)
 
-	print("\tPart2: Training model Subject_2.pt")
-	trainModel("Subject_2.pt", train_loader)
+	print("\tPart2: Training model subject1.pt")
+	trainModel("subject1.pt", train_loader)
 
-if os.path.isfile("Subject_2.pt"):
+if os.path.isfile("subject1.pt"):
 	test_set = DiabetesDataset(test_data, test_labels)
 	validation_loader = DataLoader(dataset=test_set,
 							batch_size=batch_size,
 							shuffle=False,
 							num_workers=6)
-	print("\tPart 2: Running model Subject_2.pt")
-	run("Subject_2.pt", validation_loader)
+	print("\tPart 2: Running model subject1.pt")
+	run("subject1.pt", validation_loader)
 
 '''
 ## Building Individual Model for Subject_7
