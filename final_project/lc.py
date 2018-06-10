@@ -1,8 +1,11 @@
 # Using Lam's code as a base to read and unpack data
+import itertools
 import numpy as np
 from sklearn.model_selection import KFold
 
 k = 15					# K-fold validation
+batch_size = 5
+window_size = 7
 
 ''' Parsing Code '''
 # Retrieves all indices
@@ -40,7 +43,7 @@ def load_data(data_file, indice_file):
 
 	for i, row in enumerate(data):
 		new_batch = []
-		if  i+window_size <= data_total_len and check_window(all_indice, i, i+7):
+		if  (i+window_size <= data_total_len) and (check_window(all_indice, i, i+window_size)):
 			for j in range(i, i+window_size):
 				new_batch = [x for x in itertools.chain(new_batch, data[j, 0:8])]
 				if j == i+window_size-1:
@@ -60,12 +63,7 @@ def kFold(batch, labels):
 		X_train, X_test = batch[train_index], batch[test_index]
 		y_train, y_test = labels[train_index], labels[test_index]
 
-	test_data = X_train
-	test_labels = y_train
-	train_data = X_test
-	train_labels = y_test
-
-	return test_data, test_labels, train_data, train_labels
+	return X_train, y_train, X_test, y_test
 	
 ''' End of Parsing Code '''
 
@@ -73,3 +71,48 @@ def kFold(batch, labels):
 # Might actually need this to be L2 and descent?
 def weight(batch, labels):
     return (np.transpose(batch).dot(labels)).dot(np.linalg.inv(np.transpose(batch).dot(batch)))   # W = (X^T * X)^-1 * X^T * Y  
+
+def sigmoid(w, f):
+    return 1.0 / (1.0 + np.exp((-1.0 * np.transpose(w)).dot(f)))                    # 1 / (1 + e^(-w^T x))
+
+def gradient(w, f, o, lam = 0):
+    g = np.zeros(256, dtype=float)
+    for i in range(f.shape[0]):
+        y_hat = sigmoid(w, f[i])                # Iterate over all features in each row
+        if lam != 0:                            # If there is a lamda value then we're doing regularization for Part 2.3
+            y_hat = y_hat + (lam * np.linalg.norm(w, 2))
+        g = g + (float(o[i]) - y_hat) * f[i]    # Reversed on slides, does't work for y_hat - o[i]
+    return g
+
+def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test):
+    f = open("gradient_descent.csv", 'w+')
+    print("Iteration\tTraining Accuracy\tTest Accuracy")
+    f.write("Iteration,Training Accuracy,Test Accuracy\n")
+
+    w = np.zeros(256, dtype=float)                      # Initilize w = [0, ...0]
+    
+    for i in range(1, itr):
+        g = gradient(w, f_train, o_train)
+        w = w + (learning_rate * g)
+        print(str(i) + "\t" + str(check(w, f_train, o_train)) + "\t" + str(check(w, f_test, o_test)))
+        f.write(str(i) + "," + str(check(w, f_train, o_train)) + "," + str(check(w, f_test, o_test)) + "\n")
+    
+    f.close()
+
+def check(w, f, expected):  # Check predicted values agaist the correct value column and take the ratio of correct / total
+    correct = 0
+    for i in range(0, f.shape[0]):
+        y_hat = sigmoid(w, f[i])
+        if np.round(y_hat) == expected[i]:
+            correct += 1
+    return float(correct) / float(f.shape[0])   # Ratio expresses this weight's accuracy
+''' End Classifier Code '''
+
+s2_batch, s2_label = load_data('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
+
+itr = 100
+learning_rate = 0.0001
+
+s2_batch = np.divide(s2_batch, 255)
+
+#batch_gradient_descent(itr, learning_rate, s2_batch, s2_label, s2_batch, s2_label)
