@@ -18,7 +18,7 @@ from sklearn.model_selection import KFold
 import os.path
 #	---	Global Statements Start	---
 
-k = 20				# K-fold validation
+k = 30				# K-fold validation
 
 epochs = 3
 
@@ -28,7 +28,7 @@ window_size = 7
 num_classes = 8
 output_size = 2
 
-learningRate = 0.00000001
+learningRate = 0.0000001
 
 input_size = num_classes * window_size 		# Input size is 7*8
 #	---	Global Statements End	---
@@ -51,8 +51,8 @@ class DiabetesDataset(Dataset):
 	def __getitem__(self, index):
 		window = torch.tensor(torch.from_numpy(self.x_data[index]))
 		label = torch.tensor(self.y_data[index]).long()
-		# print window.type()
-		# print label
+		#print window.size()
+		#print label.size()
 		return window, label
 
 	def __len__(self):
@@ -61,14 +61,14 @@ class DiabetesDataset(Dataset):
 class Net(nn.Module):
 	def __init__(self, input_size, out_size):
 		super(Net, self).__init__()
-		self.fc_in = nn.Linear(input_size, 784)
+		self.fc_in = nn.Linear(input_size, 150)
 		#self.l1 = nn.Linear(784, 10)
-		self.l1 = nn.Linear(784, 200)
-		#self.l2 = nn.Linear(520, 10)
-		#self.l3 = nn.Linear(320, 240)
+		self.l1 = nn.Linear(150, 60)
+		#self.l2 = nn.Linear(60, 10)
+		#self.l3 = nn.Linear(320, 10)
 		#self.l4 = nn.Linear(240, 120)
 		#self.l5 = nn.Linear(120, 10)
-		self.fc3_out = nn.Linear(200, out_size)
+		self.fc3_out = nn.Linear(60, out_size)
 		self.relu = nn.ReLU()
 	
 	def forward(self, x):
@@ -117,14 +117,7 @@ def validate(model, model_name, valid_set):
 		#print str(prediction) + "\t" + str(labels)
 		pred.write(str(prob)+"," + str(predicted.data.numpy()[0]) + "\n")
 		gold.write(str(labels.data.numpy()[0]) + "\n")
-		#total += labels.size(0)
-		#correct += (predicted == labels).sum()
-		#if predicted != labels:
-			#print(str(predicted) + "\t" + str(labels))
 
-	#print('  Correct:	%d' % correct)
-	#print('    Total:	%d' % total)
-	#print(' Accuracy:	%d %%' % (100 * correct / total))
 	gold.close()
 	pred.close()
 	print("Created " + str(pred_name))
@@ -194,8 +187,8 @@ def trainModel(model_name, training):
 	if cuda:
 		model.cuda()
 	criterion = nn.CrossEntropyLoss()  
-	optimizer = optim.SGD(model.parameters(), lr=learningRate, momentum=0.5)
-	#optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)  	
+	#optimizer = optim.SGD(model.parameters(), lr=learningRate, momentum=0.5)
+	optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)  	
 	print("Learning Rate: " + str(learningRate))
 	print("\tEpoch\t\tInterval\t\tLoss")
 	for epoch in range(1, epochs + 1):
@@ -225,55 +218,28 @@ def print_data(train_data, train_labels, test_data, test_labels):
 	print test_labels
 	print test_labels.shape
 
-
 ## Building Individual Model for Subject_2
-s2_batch, s2_label = load_data('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
-
-train_data, train_labels, test_data, test_labels = kFold(s2_batch, s2_label)
-
-print_data(train_data, train_labels, test_data, test_labels)
-'''
-if not os.path.isfile("subject1.pt"):									# Uncomment to train
-	train_set = DiabetesDataset(train_data, train_labels,)
-	train_loader = DataLoader(dataset=train_set,
-							batch_size=batch_size,
-							shuffle=True,
-							num_workers=6)
-
-	print("\tPart2: Training model subject1.pt")
-	trainModel("subject1.pt", train_loader)
-'''
-if os.path.isfile("results/subject1_models/subject1_model0.pt"):
-	test_set = DiabetesDataset(test_data, test_labels)
-	validation_loader = DataLoader(dataset=test_set,
-							batch_size=batch_size,
-							shuffle=False,
-							num_workers=6)
-	print("\tPart 2: Running model subject1.pt")
-	run("results/subject1_models/subject1_model0.pt", validation_loader)
-
-'''
-## Building Individual Model for Subject_7
 s7_batch, s7_label = load_data('./data/part1/Subject_7_part1.csv', './data/part1/list_7_part1.csv')
 
 train_data, train_labels, test_data, test_labels = kFold(s7_batch, s7_label)
 
-if not os.path.isfile("Subject_7.pt"):
+print_data(train_data, train_labels, test_data, test_labels)
+
+if not os.path.isfile("subject2.pt"):
 	train_set = DiabetesDataset(train_data, train_labels)
 	train_loader = DataLoader(dataset=train_set,
 							batch_size=batch_size,
 							shuffle=True,
-							num_workers=2)
+							num_workers=6)
 
-	print("\tPart2: Training model Subject_7.pt")
-	trainModel("Subject_7.pt", train_loader)
+	print("\tPart2: Training model subject2.pt")
+	trainModel("subject2.pt", train_loader)
 
-if os.path.isfile("Subject_7.pt"):
+if os.path.isfile("subject2.pt"):
 	test_set = DiabetesDataset(test_data, test_labels)
 	validation_loader = DataLoader(dataset=test_set,
 							batch_size=batch_size,
 							shuffle=False,
-							num_workers=2)
-	print("\tPart 2: Running model Subject_7.pt")
-	run("Subject_7.pt", validation_loader)
-'''
+							num_workers=6)
+	print("\tPart 2: Running model subject2.pt")
+	run("subject2.pt", validation_loader)
