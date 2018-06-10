@@ -1,4 +1,3 @@
 clean:
-	rm -f subject1_pred*
-	rm -f subject1_gold*
+	rm -f *.csv
 	rm -f result.csv
