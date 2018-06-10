@@ -18,9 +18,9 @@ from sklearn.model_selection import KFold
 import os.path
 #	---	Global Statements Start	---
 
-k = 20					# K-fold validation
+k = 20				# K-fold validation
 
-epochs = 2
+epochs = 10
 
 batch_size = 5
 
@@ -28,10 +28,7 @@ window_size = 7
 num_classes = 8
 output_size = 2
 
-hidden_size_1 = 300
-hidden_size_2 = 100
-
-learningRate = 0.01
+learningRate = 0.000000002
 
 input_size = num_classes * window_size 		# Input size is 7*8
 #	---	Global Statements End	---
@@ -61,34 +58,28 @@ class DiabetesDataset(Dataset):
 	def __len__(self):
 		return self.len
 
-# Neural Network Model, 1 hidden layer, relu activation function
 class Net(nn.Module):
-	def __init__(self, input_size, h1, h2, out_size):
+	def __init__(self, input_size, out_size):
 		super(Net, self).__init__()
-		self.fc1 = nn.Linear(input_size, h1)	
-		self.fc2 = nn.Linear(h1, h2)
-
-		self.fc2_1 = nn.Linear(h2, 20)	# More hidden layers because why not
-		self.fc2_2 = nn.Linear(20, 50)
-		self.fc2_3 = nn.Linear(50, 30) 
-
-		self.fc3 = nn.Linear(30, out_size)
+		self.fc_in = nn.Linear(input_size, 784)
+		self.l1 = nn.Linear(784, 30)
+		#self.l1 = nn.Linear(784, 520)
+		#self.l2 = nn.Linear(520, 320)
+		#self.l3 = nn.Linear(320, 240)
+		#self.l4 = nn.Linear(240, 120)
+		#self.l5 = nn.Linear(120, 10)
+		self.fc3_out = nn.Linear(30, out_size)
 		self.relu = nn.ReLU()
 	
 	def forward(self, x):
-		out = self.fc1(x)
-		out = self.relu(out)
-		out = self.fc2(out)
-		out = self.relu(out)
-
-		out = self.fc2_1(out)
-		out = self.fc2_2(out)
-		out = self.fc2_3(out)
-
-		out = self.fc3(out)
-
-		#return out
-		return F.log_softmax(out, dim=0)
+		x = self.relu(self.fc_in(x))
+		x = self.relu(self.l1(x))
+		#x = self.relu(self.l1(x))
+		#x = self.relu(self.l2(x))
+		#x = self.relu(self.l3(x))
+		#x = self.relu(self.l4(x))
+		#x = self.relu(self.l5(x))
+		return self.fc3_out(x)
 
 def train(model, epoch, data_set, criterion, optimizer, log_interval = 100):
 	for batch_idx, (data, target) in enumerate(data_set):
@@ -122,6 +113,8 @@ def validate(model, model_name, valid_set):
 		outputs = model(data)
 		_, predicted = torch.max(outputs.data, 1)
 		prob = outputs.sum().data.numpy()
+		prediction = outputs.data.max(1, keepdim=True)[1]
+		print str(prediction) + "\t" + str(labels)
 		pred.write(str(prob)+"," + str(predicted.data.numpy()[0]) + "\n")
 		gold.write(str(labels.data.numpy()[0]) + "\n")
 		#total += labels.size(0)
@@ -164,7 +157,7 @@ def load_data(data_file, indice_file):
 	data = np.loadtxt(data_file, delimiter=',', usecols=(1, 2, 3, 4, 5, 6, 7, 8, 9), dtype=np.float32)
 	
 	with open(indice_file, 'r') as f:
-   		indice = [line.strip() for line in f]
+		indice = [line.strip() for line in f]
 
 	data_total_len = data.shape[0]
 	all_indice = get_indice(indice)
@@ -197,11 +190,12 @@ def kFold(batch, labels):
 	return X_train, y_train, X_test, y_test
 
 def trainModel(model_name, training):
-	model = Net(input_size, hidden_size_1, hidden_size_2, output_size)
+	model = Net(input_size, output_size)
 	if cuda:
 		model.cuda()
 	criterion = nn.CrossEntropyLoss()  
-	optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)  	
+	optimizer = optim.SGD(model.parameters(), lr=learningRate, momentum=0.5)
+	#optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)  	
 	print("Learning Rate: " + str(learningRate))
 	print("\tEpoch\t\tInterval\t\tLoss")
 	for epoch in range(1, epochs + 1):
@@ -210,7 +204,7 @@ def trainModel(model_name, training):
 	torch.save(model.state_dict(), model_name)	# Saves model
 
 def run(model_name, validation):
-	model = Net(input_size, hidden_size_1, hidden_size_2, output_size)
+	model = Net(input_size, output_size)
 	if cuda:
 		model.cuda()
 	model.load_state_dict(torch.load(model_name))
@@ -267,7 +261,7 @@ train_data, train_labels, test_data, test_labels = kFold(s7_batch, s7_label)
 if not os.path.isfile("Subject_7.pt"):
 	train_set = DiabetesDataset(train_data, train_labels)
 	train_loader = DataLoader(dataset=train_set,
-							batch_size=1,
+							batch_size=batch_size,
 							shuffle=True,
 							num_workers=2)
 
@@ -277,7 +271,7 @@ if not os.path.isfile("Subject_7.pt"):
 if os.path.isfile("Subject_7.pt"):
 	test_set = DiabetesDataset(test_data, test_labels)
 	validation_loader = DataLoader(dataset=test_set,
-							batch_size=1,
+							batch_size=batch_size,
 							shuffle=False,
 							num_workers=2)
 	print("\tPart 2: Running model Subject_7.pt")
