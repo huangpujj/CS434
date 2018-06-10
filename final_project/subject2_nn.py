@@ -22,13 +22,13 @@ k = 30				# K-fold validation
 
 epochs = 3
 
-batch_size = 4
+batch_size = 1
 
 window_size = 7
 num_classes = 8
 output_size = 2
 
-learningRate = 0.0000001
+learningRate = 0.00001
 
 input_size = num_classes * window_size 		# Input size is 7*8
 #	---	Global Statements End	---
@@ -58,40 +58,49 @@ class DiabetesDataset(Dataset):
 	def __len__(self):
 		return self.len
 
-class Net(nn.Module):
+class cnn(nn.Module):
 	def __init__(self, input_size, out_size):
-		super(Net, self).__init__()
-		self.fc_in = nn.Linear(input_size, 150)
-		#self.l1 = nn.Linear(784, 10)
-		self.l1 = nn.Linear(150, 60)
-		#self.l2 = nn.Linear(60, 10)
-		#self.l3 = nn.Linear(320, 10)
-		#self.l4 = nn.Linear(240, 120)
-		#self.l5 = nn.Linear(120, 10)
-		self.fc3_out = nn.Linear(60, out_size)
+		super(cnn, self).__init__()
+		self.conv1 = nn.Conv2d(1, 8, 3, padding=2)
+		self.conv2 = nn.Conv2d(8, 1, 4, padding=2)
+		self.mp = nn.MaxPool2d(2,2)
+		self.fc = nn.Linear(6, 2)
 		self.relu = nn.ReLU()
 	
 	def forward(self, x):
-		x = self.relu(self.fc_in(x))
-		#x = self.relu(self.l1(x))
-		x = self.relu(self.l1(x))
-		#x = self.relu(self.l2(x))
-		#x = self.relu(self.l3(x))
-		#x = self.relu(self.l4(x))
-		#x = self.relu(self.l5(x))
-		return self.fc3_out(x)
+		in_size = x.size(0)
+		x = x.unsqueeze(0)
+		x = self.relu(self.mp(self.conv1(x)))
+		x = self.relu(self.mp(self.conv2(x)))
+		x = x.view(in_size, -1)  # flatten the tensor
+		x = self.fc(x)
+
+		probs = F.softmax(x)       # [B, class]
+		print torch.max(probs, 1)
+		classes = torch.max(probs, 1)[1]# [B]
+		return probs, classes
 
 def train(model, epoch, data_set, criterion, optimizer, log_interval = 100):
 	for batch_idx, (data, target) in enumerate(data_set):
 		if cuda:
 			data, target = data.cuda(), target.cuda()
+		
+		# Conv data reshape
+		a = data.numpy()
+		final = []
+		for i, b in enumerate(a):
+			final.append(np.array_split(b, 7))
+		final = np.array(final)
+		data = torch.tensor(final)
+
 		# Convert torch tensor to variable
 		data, target = Variable(data), Variable(target)
 		
 		# forward + backward + optimize
 		optimizer.zero_grad()
-		output = model(data)
-		loss = criterion(output, target)
+		probs, classes = model(data)
+		classes = classes.type(torch.DoubleTensor)
+		loss = criterion(probs, target)
 		loss.backward()
 		optimizer.step()
 		
@@ -101,7 +110,6 @@ def train(model, epoch, data_set, criterion, optimizer, log_interval = 100):
 				100. * batch_idx / len(data_set), loss.data.item()))
 	
 def validate(model, model_name, valid_set):
-	#total, correct = 0, 0
 	pred_name = str(model_name.split(".", 1)[0]) + "_pred1.csv"
 	gold_name = str(model_name.split(".", 1)[0]) + "_gold1.csv"
 	
@@ -110,12 +118,23 @@ def validate(model, model_name, valid_set):
 	
 	#print("Predicted\tLabel")
 	for data, labels in valid_set:
-		outputs = model(data)
-		_, predicted = torch.max(outputs.data, 1)
-		prob = outputs.sum().data.numpy()
-		prediction = outputs.data.max(1, keepdim=True)[1]
+
+		# Conv data reshape
+		a = data.numpy()
+		final = []
+		for i, b in enumerate(a):
+			final.append(np.array_split(b, 7))
+		final = np.array(final)
+		data = torch.tensor(final)
+
+
+		probs, classes = model(data)
+		#print(str(probs) + "\t" + str(classes.data[0]))
+		#_, predicted = torch.max(outputs.data, 1)
+		prob = probs.sum().data.numpy()
+		#prediction = outputs.data.max(1, keepdim=True)[1]
 		#print str(prediction) + "\t" + str(labels)
-		pred.write(str(prob)+"," + str(predicted.data.numpy()[0]) + "\n")
+		pred.write(str(prob)+"," + str(classes.data.numpy()[0]) + "\n")
 		gold.write(str(labels.data.numpy()[0]) + "\n")
 
 	gold.close()
@@ -183,10 +202,10 @@ def kFold(batch, labels):
 	return X_train, y_train, X_test, y_test
 
 def trainModel(model_name, training):
-	model = Net(input_size, output_size)
+	model = cnn(input_size, output_size)
 	if cuda:
 		model.cuda()
-	criterion = nn.CrossEntropyLoss()  
+	criterion = nn.CrossEntropyLoss()
 	#optimizer = optim.SGD(model.parameters(), lr=learningRate, momentum=0.5)
 	optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)  	
 	print("Learning Rate: " + str(learningRate))
@@ -197,7 +216,7 @@ def trainModel(model_name, training):
 	torch.save(model.state_dict(), model_name)	# Saves model
 
 def run(model_name, validation):
-	model = Net(input_size, output_size)
+	model = cnn(input_size, output_size)
 	if cuda:
 		model.cuda()
 	model.load_state_dict(torch.load(model_name))
