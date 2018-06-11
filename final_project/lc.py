@@ -81,7 +81,7 @@ def gradient(w, f, o, lam = 0):
         y_hat = sigmoid(w, f[i])                # Iterate over all features in each row
         if lam != 0:                            # If there is a lamda value then we're doing regularization for Part 2.3
             y_hat = y_hat + (lam * np.linalg.norm(w, 2))
-        g = g + (float(o[i]) - y_hat) * f[i]    # Reversed on slides, does't work for y_hat - o[i]
+        g = g + (float(o[i])) * f[i]    # Reversed on slides, does't work for y_hat - o[i]
     return g
 
 def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test):
@@ -106,6 +106,21 @@ def check(w, f, expected):  # Check predicted values agaist the correct value co
         if np.round(y_hat) == expected[i]:
             correct += 1
     return float(correct) / float(f.shape[0])   # Ratio expresses this weight's accuracy
+
+def print_data(train_data, train_labels, test_data, test_labels):
+	print "Training Data"
+	print train_data
+	print train_data.shape
+	print "\nTraining Labels"
+	print train_labels
+	print train_labels.shape
+
+	print "\nTest Data"
+	print test_data
+	print test_data.shape
+	print "\nTest Labels"
+	print test_labels
+	print test_labels.shape
 ''' End Classifier Code '''
 
 s2_batch, s2_label = load_data('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
@@ -113,6 +128,7 @@ s2_batch, s2_label = load_data('./data/part1/Subject_2_part1.csv', './data/part1
 itr = 100
 learning_rate = 0.0001
 
-s2_batch = np.divide(s2_batch, 255)
+train_data, train_labels, test_data, test_labels = kFold(s2_batch, s2_label)
+print_data(train_data, train_labels, test_data, test_labels)
 
-#batch_gradient_descent(itr, learning_rate, s2_batch, s2_label, s2_batch, s2_label)
+batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels)
