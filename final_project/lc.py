@@ -76,7 +76,7 @@ def sigmoid(w, f):
     return 1.0 / (1.0 + np.exp((-1.0 * np.transpose(w)).dot(f)))                    # 1 / (1 + e^(-w^T x))
 
 def gradient(w, f, o, lam = 0):
-    g = np.zeros(256, dtype=float)
+    g = np.zeros(56, dtype=float)
     for i in range(f.shape[0]):
         y_hat = sigmoid(w, f[i])                # Iterate over all features in each row
         if lam != 0:                            # If there is a lamda value then we're doing regularization for Part 2.3
@@ -89,15 +89,14 @@ def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test)
     print("Iteration\tTraining Accuracy\tTest Accuracy")
     f.write("Iteration,Training Accuracy,Test Accuracy\n")
 
-    w = np.zeros(256, dtype=float)                      # Initilize w = [0, ...0]
+    w = np.zeros(56, dtype=float)                      # Initilize w = [0, ...0]
     
     for i in range(1, itr):
         g = gradient(w, f_train, o_train)
         w = w + (learning_rate * g)
-        print(str(i) + "\t" + str(check(w, f_train, o_train)) + "\t" + str(check(w, f_test, o_test)))
-        f.write(str(i) + "," + str(check(w, f_train, o_train)) + "," + str(check(w, f_test, o_test)) + "\n")
-    
-    f.close()
+        print(str(i) + "\t" + str(check(w, f_train, o_train)))
+        #f.write(str(i) + "," + str(check(w, f_train, o_train)) + "," + str(check(w, f_test, o_test)) + "\n")
+	f.close()
 
 def check(w, f, expected):  # Check predicted values agaist the correct value column and take the ratio of correct / total
     correct = 0
@@ -129,6 +128,8 @@ itr = 100
 learning_rate = 0.0001
 
 train_data, train_labels, test_data, test_labels = kFold(s2_batch, s2_label)
-print_data(train_data, train_labels, test_data, test_labels)
+
+# K, the data is reading correctly...
+# print_data(train_data, train_labels, test_data, test_labels)
 
 batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels)
