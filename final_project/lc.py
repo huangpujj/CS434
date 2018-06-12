@@ -78,40 +78,36 @@ def sigmoid(w, f):
 
 # Solution might be to not let g reset to 0 every time?
 def gradient(w, f, o, lam = 0):
-	g = np.zeros(56, dtype=float)
+	#g = np.zeros(56, dtype=float)
 	for i in range(f.shape[0]):
 		y_hat = sigmoid(w, f[i])                # Iterate over all features in each row
 		if lam != 0:                            # If there is a lamda value then we're doing regularization for Part 2.3
 			y_hat = y_hat + (lam * np.linalg.norm(w, 2))
-		g = g + ((float(o[i]) - y_hat) * f[i])    # Reversed on slides, does't work for y_hat - o[i]
+		g = w + ((float(o[i]) - y_hat) * f[i])    # Reversed on slides, does't work for y_hat - o[i]
 	return g
 
 def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test):
-	f = open("gradient_descent.csv", 'w+')
-	print("Iteration\tTraining Accuracy\tTest Accuracy")
-	f.write("Iteration,Training Accuracy,Test Accuracy\n")
+    f = open("gradient_descent.csv", 'w+')
+    print("Iteration\tTraining Accuracy\tTest Accuracy")
+    f.write("Iteration,Training Accuracy,Test Accuracy\n")
 
-	w = np.zeros(56, dtype=float)                      # Initilize w = [0, ...0]
-
-	for i in range(1, itr):
-		g = gradient(w, f_train, o_train)
-		print("g: ")
-		print(g)
-		w = w + (learning_rate * g)
-		print("w: ")
-		print(w)
-		print()
-		print(str(i) + "\t" + str(check(w, f_train, o_train)) + "," + str(check(w, f_test, o_test)) + "\n")
-		#f.write(str(i) + "," + str(check(w, f_train, o_train)) + "," + str(check(w, f_test, o_test)) + "\n")
-	f.close()
+    w = np.zeros(56, dtype=float)                      # Initilize w = [0, ...0]
+    
+    for i in range(1, itr):
+        g = gradient(w, f_train, o_train)
+        w = w + (learning_rate * g)
+        print(str(i) + "\t" + str(check(w, f_train, o_train)) + "\t" + str(check(w, f_test, o_test)))
+        f.write(str(i) + "," + str(check(w, f_train, o_train)) + "," + str(check(w, f_test, o_test)) + "\n")
+    
+    f.close()
 
 def check(w, f, expected):  # Check predicted values agaist the correct value column and take the ratio of correct / total
-	correct = 0
-	for i in range(0, f.shape[0]):
-		y_hat = sigmoid(w, f[i])
-	if np.round(y_hat) == expected[i]:
-		correct += 1
-	return float(correct) / float(f.shape[0])   # Ratio expresses this weight's accuracy
+    correct = 0
+    for i in range(0, f.shape[0]):
+        y_hat = sigmoid(w, f[i])
+        if np.round(y_hat) == expected[i]:
+            correct += 1
+    return float(correct) / float(f.shape[0])   # Ratio expresses this weight's accuracy
 
 def print_data(train_data, train_labels, test_data, test_labels):
 	print "Training Data"
@@ -131,7 +127,7 @@ def print_data(train_data, train_labels, test_data, test_labels):
 
 s2_batch, s2_label = load_data('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
 
-itr = 4
+itr = 100
 learning_rate = 0.000001
 
 train_data, train_labels, test_data, test_labels = kFold(s2_batch, s2_label)
