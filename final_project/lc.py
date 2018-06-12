@@ -31,7 +31,7 @@ def check_window(indice, start, end):
 
 def load_data(data_file, indice_file):
 	data = np.loadtxt(data_file, delimiter=',', usecols=(1, 2, 3, 4, 5, 6, 7, 8, 9), dtype=np.float32)
-
+	
 	with open(indice_file, 'r') as f:
 		indice = [line.strip() for line in f]
 
@@ -43,7 +43,7 @@ def load_data(data_file, indice_file):
 
 	for i, row in enumerate(data):
 		new_batch = []
-		if(i+window_size <= data_total_len) and (check_window(all_indice, i, i+window_size)):
+		if  (i+window_size <= data_total_len) and (check_window(all_indice, i, i+window_size)):
 			for j in range(i, i+window_size):
 				new_batch = [x for x in itertools.chain(new_batch, data[j, 0:8])]
 				if j == i+window_size-1:
@@ -72,8 +72,9 @@ def kFold(batch, labels):
 def weight(batch, labels):
 	return (np.transpose(batch).dot(labels)).dot(np.linalg.inv(np.transpose(batch).dot(batch)))   # W = (X^T * X)^-1 * X^T * Y  
 
+# This is a problem spot, learning rate must be low or it will overflow
 def sigmoid(w, f):
-	return 1.0 / (1.0 + np.exp((-1.0 * np.transpose(w)).dot(f)))                    # 1 / (1 + e^(-w^T x))
+	return 1.0 / (1.0 + np.exp((-1.0 * np.transpose(w)).dot(f)))  # 1 / (1 + e^(-w^T x))
 
 def gradient(w, f, o, lam = 0):
 	g = np.zeros(56, dtype=float)
@@ -98,7 +99,8 @@ def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test)
 		w = w + (learning_rate * g)
 		print("w: ")
 		print(w)
-		print(str(i) + "\t" + str(check(w, f_train, o_train)))
+		print()
+		print(str(i) + "\t" + str(check(w, f_train, o_train)) + "," + str(check(w, f_test, o_test)) + "\n")
 		#f.write(str(i) + "," + str(check(w, f_train, o_train)) + "," + str(check(w, f_test, o_test)) + "\n")
 	f.close()
 
@@ -129,11 +131,11 @@ def print_data(train_data, train_labels, test_data, test_labels):
 s2_batch, s2_label = load_data('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
 
 itr = 10
-learning_rate = 0.01
+learning_rate = 0.000001
 
 train_data, train_labels, test_data, test_labels = kFold(s2_batch, s2_label)
 
-# K, the data is reading correctly...
-# print_data(train_data, train_labels, test_data, test_labels)
+# K, the data is reading correctly... Noting a discrepency in loaded data numbers, ~50 in the x
+print_data(train_data, train_labels, test_data, test_labels)
 
-batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels)
+#batch_gradient_descent(itr, learning_rate, train_data, train_labels, train_data, train_labels)
