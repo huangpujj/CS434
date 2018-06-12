@@ -105,12 +105,10 @@ def gradient(w, f, o, lam = 0):
 		g = g + ((y_hat - float(o[i])) * f[i])
 	return g
 
-def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test):
+def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test, w):
 	f = open("gradient_descent.csv", 'w+')
 	print("Iteration\tTraining Accuracy\tTest Accuracy")
 	f.write("Iteration,Training Accuracy,Test Accuracy\n")
-
-	w = np.zeros(56, dtype=float)                      # Initilize w = [0, ...0]
 	
 	for i in range(1, itr):
 		#print(g)
@@ -150,17 +148,20 @@ def print_data(train_data, train_labels, test_data, test_labels):
 	print test_labels.shape
 ''' End Classifier Code '''
 
-s2_batch, s2_label = load_data('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
-
 itr = 10
 learning_rate = 0.00000000000001	# must be very low
+w = np.zeros(56, dtype=float)                      # Initilize w = [0, ...0]
 
-# This is working as intended
+s2_batch, s2_label = load_data('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
 train_data, train_labels, test_data, test_labels = kFold(s2_batch, s2_label)
+saved_model = batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels, w)
+# Save the weights so they can be applied to another set of data
 
 # K, the data is reading correctly... Noting a discrepency in loaded data numbers, ~50 in the x
 #print_data(train_data, train_labels, test_data, test_labels)
 
-# Save the weights so they can be applied to another set of data?
-saved_model = batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels)
-#print(saved_model)
+s7_batch, s7_label = load_data('./data/part1/Subject_7_part1.csv', './data/part1/list_7_part1.csv')
+train_data, train_labels, test_data, test_labels = kFold(s7_batch, s7_label)
+saved_model = batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels, saved_model)
+
+# Call check function with weights and features to apply the model
