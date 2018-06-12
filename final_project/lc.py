@@ -3,8 +3,8 @@ import itertools
 import numpy as np
 from sklearn.model_selection import KFold
 
-k = 15					# K-fold validation
-batch_size = 5
+k = 20					# K-fold validation
+batch_size = 4
 window_size = 7
 
 ''' Parsing Code '''
@@ -76,13 +76,14 @@ def weight(batch, labels):
 def sigmoid(w, f):
 	return 1.0 / (1.0 + np.exp((-1.0 * np.transpose(w)).dot(f)))  # 1 / (1 + e^(-w^T x))
 
+# Solution might be to not let g reset to 0 every time?
 def gradient(w, f, o, lam = 0):
 	g = np.zeros(56, dtype=float)
 	for i in range(f.shape[0]):
 		y_hat = sigmoid(w, f[i])                # Iterate over all features in each row
 		if lam != 0:                            # If there is a lamda value then we're doing regularization for Part 2.3
 			y_hat = y_hat + (lam * np.linalg.norm(w, 2))
-		g = g + (float(o[i]) - y_hat) * f[i]    # Reversed on slides, does't work for y_hat - o[i]
+		g = g + ((float(o[i]) - y_hat) * f[i])    # Reversed on slides, does't work for y_hat - o[i]
 	return g
 
 def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test):
@@ -130,12 +131,12 @@ def print_data(train_data, train_labels, test_data, test_labels):
 
 s2_batch, s2_label = load_data('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
 
-itr = 10
+itr = 4
 learning_rate = 0.000001
 
 train_data, train_labels, test_data, test_labels = kFold(s2_batch, s2_label)
 
 # K, the data is reading correctly... Noting a discrepency in loaded data numbers, ~50 in the x
-print_data(train_data, train_labels, test_data, test_labels)
+# print_data(train_data, train_labels, test_data, test_labels)
 
-#batch_gradient_descent(itr, learning_rate, train_data, train_labels, train_data, train_labels)
+batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels)
