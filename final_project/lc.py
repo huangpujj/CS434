@@ -1,3 +1,21 @@
+'''
+To Do
+
+1. Ensure model (weight vector?) is being stored effectively
+2. Verify model accuracy using test data, other subjects w/e
+3. Normalize data if necessary
+4. Encode model (weight vector?) into linear classifier
+	OR Update the batch_gradient_descent method to write into the files desired
+	
+Output files will need to write to a file and store the raw value and the 0 or 1
+for predicting whether a hypo event happens.
+
+Can we write the prediction during batch_gradient_descent or will it need to be done
+separately using a classifier created a la gradient descent?
+	
+What's this about FAC? False positives/negatives counts? ROC? Not in Kansas anymore
+'''
+
 # Using Lam's code as a base to read and unpack data
 import itertools
 import numpy as np
@@ -99,7 +117,8 @@ def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test)
         print(str(i) + "\t" + str(check(w, f_train, o_train)) + "\t" + str(check(w, f_test, o_test)))
         f.write(str(i) + "," + str(check(w, f_train, o_train)) + "," + str(check(w, f_test, o_test)) + "\n")
     
-    f.close()
+	f.close()
+	return w
 
 def check(w, f, expected):  # Check predicted values agaist the correct value column and take the ratio of correct / total
     correct = 0
@@ -135,4 +154,6 @@ train_data, train_labels, test_data, test_labels = kFold(s2_batch, s2_label)
 # K, the data is reading correctly... Noting a discrepency in loaded data numbers, ~50 in the x
 # print_data(train_data, train_labels, test_data, test_labels)
 
-batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels)
+# Save the weights so they can be applied to another set of data?
+saved_model = batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels)
+print(saved_model)
