@@ -245,11 +245,11 @@ if not os.path.isfile("subject1.pt"):									# Uncomment to train
 '''
 
 # Executes the best subject 1 trained model
-if os.path.isfile("results/subject1_models/subject1_model0.pt"):
+if os.path.isfile("./results/subject1_model/subject1_model0.pt"):
 	test_set = DiabetesDataset(test_data, test_labels)
 	validation_loader = DataLoader(dataset=test_set,
 							batch_size=batch_size,
 							shuffle=False,
 							num_workers=6)
 	print("\tPart 2: Running model subject1.pt")
-	run("results/subject1_models/subject1_model0.pt", validation_loader)
+	run("./results/subject1_model/subject1_model0.pt", validation_loader)

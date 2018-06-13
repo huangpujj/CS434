@@ -28,7 +28,7 @@ window_size = 7
 num_classes = 8
 output_size = 2
 
-learningRate = 0.0001
+learningRate = 0.0000000001
 
 input_size = num_classes * window_size 		# Input size is 7*8
 #	---	Global Statements End	---
@@ -57,16 +57,16 @@ class cnn(nn.Module):
 		self.conv1 = nn.Sequential(
 					nn.Conv1d(7, 56, kernel_size=5, stride=1),
 					nn.ReLU(),
-					nn.MaxPool1d(kernel_size=3, stride=3)
+					nn.MaxPool2d(2,2)
 				)
 	
 		self.fc1 = nn.Sequential(
-			nn.Linear(56, 150),
+			nn.Linear(56, 250),
 			nn.ReLU(),
 		)
 
 		self.fc2 = nn.Sequential(
-			nn.Linear(150, 30),
+			nn.Linear(250, 30),
 			nn.ReLU(),
 		)
 
@@ -218,8 +218,8 @@ def trainModel(model_name, training):
 	if cuda:
 		model.cuda()
 	criterion = nn.CrossEntropyLoss()
-	#optimizer = optim.SGD(model.parameters(), lr=learningRate, momentum=0.5)
-	optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)  	
+	optimizer = optim.SGD(model.parameters(), lr=learningRate, momentum=0.5)
+	#optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)  	
 	print("Learning Rate: " + str(learningRate))
 	print("\tEpoch\t\tInterval\t\tLoss")
 	for epoch in range(1, epochs + 1):
@@ -256,6 +256,7 @@ train_data, train_labels, test_data, test_labels = kFold(s7_batch, s7_label)
 
 print_data(train_data, train_labels, test_data, test_labels)
 
+'''
 if not os.path.isfile("subject2.pt"):
 	train_set = DiabetesDataset(train_data, train_labels)
 	train_loader = DataLoader(dataset=train_set,
@@ -265,12 +266,12 @@ if not os.path.isfile("subject2.pt"):
 
 	print("\tPart2: Training model subject2.pt")
 	trainModel("subject2.pt", train_loader)
-
-if os.path.isfile("subject2.pt"):
+'''
+if os.path.isfile("./results/subject2_model/subject2.pt"):
 	test_set = DiabetesDataset(test_data, test_labels)
 	validation_loader = DataLoader(dataset=test_set,
 							batch_size=batch_size,
 							shuffle=False,
 							num_workers=6)
 	print("\tPart 2: Running model subject2.pt")
-	run("subject2.pt", validation_loader)
+	run("./results/subject2_model/subject2.pt", validation_loader)
