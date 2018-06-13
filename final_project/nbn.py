@@ -5,8 +5,20 @@ import itertools
 from sklearn.naive_bayes import GaussianNB
 from sklearn import preprocessing
 import csv
+from sklearn.model_selection import KFold
 
 window_size = 7
+k = 20
+
+def kFold(batch, labels):
+	kf = KFold(n_splits = k)
+	for train_index, test_index in kf.split(batch):
+		# print("TRAIN:", train_index, "TEST:", test_index)
+		X_train, X_test = batch[train_index], batch[test_index]
+		y_train, y_test = labels[train_index], labels[test_index]
+        
+	return X_train, y_train, X_test, y_test
+
 
 def get_indice(indice = False):
     all_indice = []
@@ -104,6 +116,7 @@ def sum_data(big_batch, size):
     return np.array(train)
 
 def main():
+
     #Training Data
     s1_batch, s1_label = load_data('./data/part2/Subject_1.csv', './data/part2/list_1.csv')
     s4_batch, s4_label = load_data('./data/part2/Subject_4.csv', './data/part2/list_4.csv')
@@ -129,6 +142,54 @@ def main():
     in_2_test_ft = load_test_data("data/final_test/subject7/subject7_instances.csv")
     #train = sum_data(big_batch, window_size)
     #test = sum_data(test_batch, 7)
+
+    if(sys.argv[1] == "group"):
+        print "Starting kFold validation on group of individuals"
+        norm_bigbatch = preprocessing.normalize(big_batch, norm='l2')
+        gptrain, gptrainl, gptest, gptestl = kFold(norm_bigbatch, big_label)
+        group_model = GaussianNB()
+        group_model.fit(gptrain,gptrainl)
+        group_predict = group_model.predict(gptest)
+        group_scores = group_model.predict_log_proba(gptest)
+        group_pred_int = np.array(group_predict.astype(float))[np.newaxis]
+        trans_goal = np.array(gptestl.astype(int))[np.newaxis]
+        trans_goal = trans_goal.T
+        alldata = np.append(group_scores,group_pred_int.T,axis=1)
+        alldata = alldata[:,[0,2]]
+        np.savetxt('pred.csv', alldata ,delimiter=',', fmt=['%f','%d'])
+        np.savetxt('gold.csv', trans_goal ,delimiter=',', fmt='%d')
+        print "Generated pred.csv and gold.csv on current directory!"
+        sys.exit(0)
+        
+    elif(sys.argv[1] == "individual"):
+        if(len(sys.argv) < 3):
+            print "Please specify the individual's number (2 or 7) in the third argument"
+            sys.exit(0)
+        if(int(sys.argv[2]) == 2):
+            train_data = in_1
+            train_label = in_1_label
+        elif(int(sys.argv[2]) == 7):
+            train_data = in_2
+            train_label = in_2_label
+        else:
+            print "Please specify the individual's number (2 or 7)"
+            sys.exit(0)
+        print "Starting kFold validation on individual"
+        norm_data = preprocessing.normalize(train_data, norm='l2')
+        gptrain, gptrainl, gptest, gptestl = kFold(norm_data, train_label)
+        group_model = GaussianNB()
+        group_model.fit(gptrain,gptrainl)
+        group_predict = group_model.predict(gptest)
+        group_scores = group_model.predict_log_proba(gptest)
+        group_pred_int = np.array(group_predict.astype(float))[np.newaxis]
+        trans_goal = np.array(gptestl.astype(int))[np.newaxis]
+        trans_goal = trans_goal.T
+        alldata = np.append(group_scores,group_pred_int.T,axis=1)
+        alldata = alldata[:,[0,2]]
+        np.savetxt('pred.csv', alldata ,delimiter=',', fmt=['%f','%d'])
+        np.savetxt('gold.csv', trans_goal ,delimiter=',', fmt='%d')
+        print "Generated pred.csv and gold.csv on current directory!"
+        sys.exit(0)
 
     normal_train_group = preprocessing.normalize(big_batch, norm='l2')
     normal_test_group = preprocessing.normalize(test_batch, norm='l2')
