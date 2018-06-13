@@ -28,7 +28,7 @@ window_size = 7
 num_classes = 8
 output_size = 2
 
-learningRate = 0.000001
+learningRate = 0.0001
 
 input_size = num_classes * window_size 		# Input size is 7*8
 #	---	Global Statements End	---
@@ -55,27 +55,24 @@ class cnn(nn.Module):
 	def __init__(self, input_size, out_size):
 		super(cnn, self).__init__()
 		self.conv1 = nn.Sequential(
-					nn.Conv1d(7, 225, kernel_size=5, stride=1),
+					nn.Conv1d(7, 56, kernel_size=5, stride=1),
 					nn.ReLU(),
 					nn.MaxPool1d(kernel_size=3, stride=3)
 				)
 	
 		self.fc1 = nn.Sequential(
-			nn.Linear(225, 150),
+			nn.Linear(56, 150),
 			nn.ReLU(),
-			nn.Dropout(p=1)
 		)
 
 		self.fc2 = nn.Sequential(
 			nn.Linear(150, 30),
 			nn.ReLU(),
-			nn.Dropout(p=1)
 		)
 
 		self.fc3 = nn.Sequential(
 			nn.Linear(30, 2),
-			nn.ReLU(),
-			nn.Dropout(p=1)
+			#nn.ReLU(),
 		)
 
 		self.log_softmax = nn.LogSoftmax()
@@ -88,9 +85,9 @@ class cnn(nn.Module):
 		x = self.fc1(x)
 		x = self.fc2(x)
 		x = self.fc3(x)
-		probs = self.log_softmax(x)
+		x = self.log_softmax(x)
 
-		return probs
+		return x
 
 def train(model, epoch, data_set, criterion, optimizer, log_interval = 100):
 	model.train()
@@ -221,8 +218,8 @@ def trainModel(model_name, training):
 	if cuda:
 		model.cuda()
 	criterion = nn.CrossEntropyLoss()
-	optimizer = optim.SGD(model.parameters(), lr=learningRate, momentum=0.5)
-	#optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)  	
+	#optimizer = optim.SGD(model.parameters(), lr=learningRate, momentum=0.5)
+	optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)  	
 	print("Learning Rate: " + str(learningRate))
 	print("\tEpoch\t\tInterval\t\tLoss")
 	for epoch in range(1, epochs + 1):
