@@ -8,6 +8,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.autograd import Variable
 from torch.utils.data import Dataset, DataLoader
+from itertools import chain
 
 import itertools
 
@@ -20,15 +21,15 @@ import os.path
 
 k = 25				# K-fold validation
 
-epochs = 2
+epochs = 3
 
-batch_size = 2
+batch_size = 1
 
 window_size = 7
 num_classes = 8
 output_size = 2
 
-learningRate = 0.0000000001
+learningRate = 0.00000001
 
 input_size = num_classes * window_size 		# Input size is 7*8
 #	---	Global Statements End	---
@@ -145,7 +146,7 @@ def validate(model, model_name, valid_set):
 		_, predicted = torch.max(outputs.data, 1)
 		prob = outputs.sum().data.numpy()
 
-		print str(predicted.data.numpy()) + "\t" + str(labels)
+		#print str(predicted.data.numpy()) + "\t" + str(labels)
 		pred.write(str(prob)+"," + str(predicted.data.numpy()[0]) + "\n")
 		gold.write(str(labels.data.numpy()[0]) + "\n")
 
@@ -177,29 +178,37 @@ def check_window(indice, start, end):
 					return False	# Window is not continuous
 	return True						# Window is continuous
 
-def load_data(data_file, indice_file):
-	data = np.loadtxt(data_file, delimiter=',', usecols=(1, 2, 3, 4, 5, 6, 7, 8, 9), dtype=np.float32)
-	
-	with open(indice_file, 'r') as f:
-		indice = [line.strip() for line in f]
-
-	data_total_len = data.shape[0]
-	all_indice = get_indice(indice)
-
+def load_data(data_file, indice_file = False):
 	batch = []
 	labels = []
 
-	for i, row in enumerate(data):
-		new_batch = []
-		if  (i+window_size <= data_total_len) and (check_window(all_indice, i, i+window_size)):
-			for j in range(i, i+window_size):
-				new_batch = [x for x in itertools.chain(new_batch, data[j, 0:8])]
-				if j == i+window_size-1:
-					last = data[j, [-1]]
-			batch.append(new_batch)
-			labels = np.append(labels, last)
-		else:
-			continue			# If window size is not 7 or if the contents of the window is not continuous, skip this window
+	if (indice_file != False):
+		data = np.loadtxt(data_file, delimiter=',', usecols=(1, 2, 3, 4, 5, 6, 7, 8, 9), dtype=np.float32)
+
+		with open(indice_file, 'r') as f:
+			indice = [line.strip() for line in f]
+
+		data_total_len = data.shape[0]
+		all_indice = get_indice(indice)
+
+		for i, row in enumerate(data):
+			new_batch = []
+			if (i+window_size <= data_total_len) and (check_window(all_indice, i, i+window_size)):
+				for j in range(i, i+window_size):
+					new_batch = [x for x in itertools.chain(new_batch, data[j, 0:8])]
+					if j == i+window_size-1:
+						last = data[j, [-1]]
+				batch.append(new_batch)
+				labels = np.append(labels, last)
+			else:
+				continue			# If window size is not 7 or if the contents of the window is not continuous, skip this window
+	else:
+		data = np.loadtxt(data_file, delimiter=',', usecols=(0, 1, 2, 3, 4, 5, 6, 7, 8), dtype=np.float32)
+		batch = [row[0:8] for i, row in enumerate(data)]
+		batch = list(chain.from_iterable(batch))
+		#print  data[6, [-1]]
+		last = 1
+		labels = last
 
 	batch = np.array(batch)
 	return batch, labels
@@ -250,13 +259,13 @@ def print_data(train_data, train_labels, test_data, test_labels):
 	print test_labels.shape
 
 ## Building Individual Model for Subject_2
+'''
 s7_batch, s7_label = load_data('./data/part1/Subject_7_part1.csv', './data/part1/list_7_part1.csv')
 
 train_data, train_labels, test_data, test_labels = kFold(s7_batch, s7_label)
 
 print_data(train_data, train_labels, test_data, test_labels)
 
-'''
 if not os.path.isfile("subject2.pt"):
 	train_set = DiabetesDataset(train_data, train_labels)
 	train_loader = DataLoader(dataset=train_set,
@@ -267,11 +276,24 @@ if not os.path.isfile("subject2.pt"):
 	print("\tPart2: Training model subject2.pt")
 	trainModel("subject2.pt", train_loader)
 '''
-if os.path.isfile("./results/subject2_model/subject1.pt"):
+
+test_data = []
+test_labels = []
+for i in range(1, len(os.listdir("./data/final_test/subject7/"))+1):
+	fname = "subject7_"+ str(i) + ".csv"
+	batch, label = load_data("./data/final_test/subject7/" + fname)
+	test_data.append(batch)
+	test_labels.append(label)
+
+test_data = np.array(test_data)
+test_labels = np.array(test_labels)
+
+if os.path.isfile("./results/subject2_model/subject2.pt"):
 	test_set = DiabetesDataset(test_data, test_labels)
 	validation_loader = DataLoader(dataset=test_set,
 							batch_size=batch_size,
 							shuffle=False,
 							num_workers=6)
-	print("\tPart 2: Running model subject1.pt")
-	run("./results/subject2_model/subject1.pt", validation_loader)
+	print("\tPart 2: Running model subject2.pt")
+	run("./results/subject2_model/subject2_m0.pt", validation_loader)
+	#run("subject2.pt", validation_loader)
