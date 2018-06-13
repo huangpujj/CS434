@@ -8,6 +8,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.autograd import Variable
 from torch.utils.data import Dataset, DataLoader
+from itertools import chain
 
 import itertools
 
@@ -22,7 +23,7 @@ k = 22				# K-fold validation
 
 epochs = 1
 
-batch_size = 3
+batch_size = 1
 
 window_size = 7
 num_classes = 8
@@ -148,29 +149,37 @@ def check_window(indice, start, end):
 					return False	# Window is not continuous
 	return True						# Window is continuous
 
-def load_data(data_file, indice_file):
-	data = np.loadtxt(data_file, delimiter=',', usecols=(1, 2, 3, 4, 5, 6, 7, 8, 9), dtype=np.float32)
-	
-	with open(indice_file, 'r') as f:
-		indice = [line.strip() for line in f]
-
-	data_total_len = data.shape[0]
-	all_indice = get_indice(indice)
-
+def load_data(data_file, indice_file = False):
 	batch = []
 	labels = []
 
-	for i, row in enumerate(data):
-		new_batch = []
-		if  (i+window_size <= data_total_len) and (check_window(all_indice, i, i+window_size)):
-			for j in range(i, i+window_size):
-				new_batch = [x for x in itertools.chain(new_batch, data[j, 0:8])]
-				if j == i+window_size-1:
-					last = data[j, [-1]]
-			batch.append(new_batch)
-			labels = np.append(labels, last)
-		else:
-			continue			# If window size is not 7 or if the contents of the window is not continuous, skip this window
+	if (indice_file != False):
+		data = np.loadtxt(data_file, delimiter=',', usecols=(1, 2, 3, 4, 5, 6, 7, 8, 9), dtype=np.float32)
+
+		with open(indice_file, 'r') as f:
+			indice = [line.strip() for line in f]
+
+		data_total_len = data.shape[0]
+		all_indice = get_indice(indice)
+
+		for i, row in enumerate(data):
+			new_batch = []
+			if (i+window_size <= data_total_len) and (check_window(all_indice, i, i+window_size)):
+				for j in range(i, i+window_size):
+					new_batch = [x for x in itertools.chain(new_batch, data[j, 0:8])]
+					if j == i+window_size-1:
+						last = data[j, [-1]]
+				batch.append(new_batch)
+				labels = np.append(labels, last)
+			else:
+				continue			# If window size is not 7 or if the contents of the window is not continuous, skip this window
+	else:
+		data = np.loadtxt(data_file, delimiter=',', usecols=(0, 1, 2, 3, 4, 5, 6, 7, 8), dtype=np.float32)
+		batch = [row[0:8] for i, row in enumerate(data)]
+		batch = list(chain.from_iterable(batch))
+		#print  data[6, [-1]]
+		last = 1
+		labels = last
 
 	batch = np.array(batch)
 	return batch, labels
@@ -222,6 +231,7 @@ def print_data(train_data, train_labels, test_data, test_labels):
 
 
 ## Building general model
+'''
 s1_batch, s1_label = load_data('./data/part2/Subject_1.csv', './data/part2/list_1.csv')
 s4_batch, s4_label = load_data('./data/part2/Subject_4.csv', './data/part2/list_4.csv')
 s6_batch, s6_label = load_data('./data/part2/Subject_6.csv', './data/part2/list_6.csv')
@@ -238,7 +248,7 @@ big_label = np.concatenate((c, d), axis=0)
 
 train_data, train_labels, test_data, test_labels = kFold(big_batch, big_label)
 
-'''
+
 if not os.path.isfile("general.pt"):
 	train_set = DiabetesDataset(train_data, train_labels)
 	train_loader = DataLoader(dataset=train_set,
@@ -249,6 +259,17 @@ if not os.path.isfile("general.pt"):
 	print("\tPart2: Training model general.pt")
 	trainModel("general.pt", train_loader)
 '''
+
+test_data = []
+test_labels = []
+for i in range(1, len(os.listdir("./data/final_test/general/"))+1):
+	fname = "general_"+ str(i) + ".csv"
+	batch, label = load_data("./data/final_test/general/" + fname)
+	test_data.append(batch)
+	test_labels.append(label)
+
+test_data = np.array(test_data)
+test_labels = np.array(test_labels)
 
 if os.path.isfile("./results/general_model/general_m0.pt"):
 	test_set = DiabetesDataset(test_data, test_labels)
