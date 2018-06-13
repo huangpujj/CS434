@@ -3,19 +3,10 @@ import math
 import numpy as np
 import itertools
 from sklearn.naive_bayes import GaussianNB
-from sklearn.model_selection import KFold
+from sklearn import preprocessing
+import csv
 
 window_size = 7
-k = 20
-
-def kFold(batch, labels):
-	kf = KFold(n_splits = k)
-	for train_index, test_index in kf.split(batch):
-		# print("TRAIN:", train_index, "TEST:", test_index)
-		X_train, X_test = batch[train_index], batch[test_index]
-		y_train, y_test = labels[train_index], labels[test_index]
-
-	return X_train, y_train, X_test, y_test
 
 def get_indice(indice = False):
     all_indice = []
@@ -64,16 +55,136 @@ def load_data(data_file, indice_file):
     batch = np.array(batch)
     return batch, labels
 
+
+def load_test_dataV2(path):
+    label = []
+    array = []
+    with open(path, 'rb') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',')
+        for row in spamreader:
+            num = 0
+            for i in range(7):
+                single = []
+                for j in range(8):
+                    single.append(float(row[i+(7*j)]))
+                label.append(float(row[i+(7*8)]))
+                array.append(single)
+    return np.array(array), np.array(label)
+
+def load_test_data(path):
+    label = []
+    array = []
+    with open(path, 'rb') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',')
+        for row in spamreader:
+            single = []
+            num = 0
+            for i in range(7):
+                for j in range(8):
+                    single.append(float(row[i+(7*j)]))
+                num += float(row[i+(7*8)])
+            if(num == 0):
+                label.append(0)
+            else:
+                label.append(1)
+            array.append(single)
+    return np.array(array), np.array(label)
+
+def sum_data(big_batch, size):
+    train = []
+    for index, value in enumerate(big_batch):
+        temp_matrix = [0] * 8
+        for i in range(0, (size*8)):
+            if(i%8 == 0):
+                temp_list = []
+            temp_list.append(big_batch[index][i])
+            if((i+1)%8 == 0):
+                #temp_matrix.append(temp_list)
+                temp_matrix = [x + y for x, y in zip(temp_matrix,temp_list)]
+        train.append(temp_matrix)
+    return np.array(train)
+
 def main():
-    train_file = sys.argv[1]
-    train_indicies = sys.argv[2]
-    batch, label = load_data(train_file,train_indicies)
-    train_data, train_labels, test_data, test_labels = kFold(batch, label)
+    #Training Data
+    s1_batch, s1_label = load_data('./data/part2/Subject_1.csv', './data/part2/list_1.csv')
+    s4_batch, s4_label = load_data('./data/part2/Subject_4.csv', './data/part2/list_4.csv')
+    s6_batch, s6_label = load_data('./data/part2/Subject_6.csv', './data/part2/list_6.csv')
+    s9_batch, s9_label = load_data('./data/part2/Subject_9.csv', './data/part2/list_9.csv')
+
+    in_1, in_1_label = load_data('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
+    in_2, in_2_label = load_data('./data/part1/Subject_7_part1.csv', './data/part1/list_7_part1.csv')
+
+    #Training Features
+    a = np.concatenate((s1_batch, s4_batch), axis=0)
+    b = np.concatenate((s6_batch, s9_batch), axis=0)
+    big_batch = np.concatenate((a, b), axis=0)
+    
+    #Training Labels
+    c = np.concatenate((s1_label, s4_label), axis=0)
+    d = np.concatenate((s6_label, s9_label), axis=0)
+    big_label = np.concatenate((c, d), axis=0)
+
+    #Testing Data
+    test_batch, test_label = load_test_data("data/final_test/general/general_test_instances.csv")
+    in_1_test_ft, in_1_test_label = load_test_data("data/final_test/subject2/subject2_instances.csv")
+    in_2_test_ft, in_2_test_label = load_test_data("data/final_test/subject7/subject7_instances.csv")
+    #train = sum_data(big_batch, window_size)
+    #test = sum_data(test_batch, 7)
+
+    normal_train_group = preprocessing.normalize(big_batch, norm='l2')
+    normal_test_group = preprocessing.normalize(test_batch, norm='l2')
+    
+    normal_train_in_1 = preprocessing.normalize(in_1, norm='l2')
+    normal_test_in_1 = preprocessing.normalize(in_1_test_ft, norm='l2')
+
+    normal_train_in_2 = preprocessing.normalize(in_2, norm='l2')
+    normal_test_in_2 = preprocessing.normalize(in_2_test_ft, norm='l2')
+
     model = GaussianNB()
-    model.fit(train_data,train_labels)
-    predicted = model.predict(test_data)
+    model_1 = GaussianNB()
+    model_2 = GaussianNB()
 
+    model.fit(normal_train_group,big_label)
+    model_1.fit(normal_train_in_1,in_1_label)
+    model_2.fit(normal_train_in_2,in_2_label)
 
+    predicted = model.predict(normal_test_group)
+    predict_1 = model_1.predict(normal_test_in_1)
+    predict_2 = model_2.predict(normal_test_in_2)
 
+    #scores = model.predict_proba(normal_test)
+    scores = model.predict_log_proba(normal_test_group)
+    scores_1 = model_1.predict_log_proba(normal_test_in_1)
+    scores_2 = model_2.predict_log_proba(normal_test_in_2)
+    #scores = model.score(train_data,train_label)
+    #print(scores)
+
+    predicted_int = np.array(predicted.astype(float))[np.newaxis]
+    predicted_int_1 = np.array(predict_1.astype(float))[np.newaxis]
+    predicted_int_2 = np.array(predict_2.astype(float))[np.newaxis]
+
+    #Changing 'test_label' to change the gold
+    trans_goal = np.array(in_2_test_label.astype(int))[np.newaxis]
+    trans_goal = trans_goal.T
+
+    alldata = np.append(scores,predicted_int.T,axis=1)
+    alldata[:,0] = alldata[:,0] / 100.00
+    alldata = alldata[:,[0,2]]
+
+    in_1_data = np.append(scores_1,predicted_int_1.T,axis=1)
+    in_1_data[:,0] = in_1_data[:,0] / 100.00
+    in_1_data = in_1_data[:,[0,2]]
+
+    in_2_data = np.append(scores_2,predicted_int_2.T,axis=1)
+    in_2_data[:,0] = in_2_data[:,0] / 100.00
+    in_2_data = in_2_data[:,[0,2]]
+
+    #print alldata
+    np.savetxt('results/general_pred2.csv', alldata ,delimiter=',', fmt=['%f','%d'])
+    np.savetxt('results/individual1_pred2.csv', in_1_data ,delimiter=',', fmt=['%f','%d'])
+    np.savetxt('results/individual2_pred2.csv', in_2_data ,delimiter=',', fmt=['%f','%d'])
+    #np.savetxt('gold.csv', trans_goal ,delimiter=',', fmt='%d')
+
+    
 if __name__ == "__main__":
     main()
