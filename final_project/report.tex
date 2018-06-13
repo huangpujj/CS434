@@ -1,6 +1,13 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage{amsmath}
 \usepackage{graphicx}
+\usepackage{geometry}
+ \geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=20mm,
+ top=20mm,
+ }
 %\usepackage[colorinlistoftodos]{todonotes}
 
 \title{CS434 Final Project Report (3-page limit)}
@@ -11,8 +18,6 @@
 \section{Feature formulation and preprocessing}
 \subsection{Features} What are the features you feed to your learning algorithm? Did you simply flatten the 7 rows into a vector for features? Did you transform or aggregate the given data to engineer your own features?
 
-
-
 Given a window size of 7 events, where each event contains a value for glucose, slope, IOB, MOB, morning, afternoon, and night, we flattened the features into a 56-long vector.
 The last event's hypo value is used as the class label for that set of data.
 In the CNN model for subject 2, I converted the flattened data into a 7x8 matrix.
@@ -22,7 +27,6 @@ Did you pre-process your data in any way? This can be for the purpose of reducin
 
 We did not pre-process the data.
 Given the poor results from our NN and CNN models, one can presume that some pre-processing is necessary to add more distinction between classes or remove noise.
-
 
 \section{Learning algorithms}
 \subsection{Algorithms explored}
@@ -40,6 +44,14 @@ Provide a list of learning algorithms that you explored for this project. For ea
 		I created a CNN model using pytorch for subject 2.
 		I chose to experiment with a CNN because I wasn't producing good results from a NN model.
 		It is clear from my results that I am either doing something wrong, my data format is not appropriate for a CNN, or models over-fit the training data, as both had very high AUC and precision values but does not produce realistic results in the final test data.
+		
+	\item Gaussian Naive Bayes
+	    \subitem
+	    I used Gaussian Naive Bayes because I saw each of the variables described in the assignment as being independent of one another.
+	    Due to their independence assumption, we do not need to make any correlation between each feature into consideration and can use what we have to test for the hypoglycemic event.
+	    Another reason is how fast naive Bayes takes to train and run.
+	    Due to their low computational complexity, using a Bayes to train multiple models and adjusting for variations is simpler.
+	    Looking back now, realizing that we are using a flatten vector array of 56 features, it would be better to assume that some variables do relate to one another and try to using a different classifier based off that.
 \end{enumerate}
 
 
@@ -48,6 +60,7 @@ What are the final models that produced your submitted test predictions?
 \begin{enumerate}
 	\item 1 and 2 layer Neural Network
 	\item Single layer Convolution Neural Network
+	\item Gaussian Naive Bayes
 \end{enumerate}
 
 \section{Parameter Tuning and Model Selection }
@@ -58,6 +71,11 @@ What parameters did you tune for your models? How do you perform the parameter t
 		\subitem
 		I tuned the learning rate, epoch, batch size, and number of neurons in each layer/hidden layer/convoluted layer.
 		I also adjusted the kernel size, loss function, and optimizer function.
+		
+	\item Gaussian Naive Bayes
+	    \subitem
+	    I was able to tune the weight of the Bayesian network as well as what standardization to use when standardizing the data.
+	    The weights would play a key roll in controlling the response variable and standardizing the weights helps keep one variable from overpowering the others.
 \end{enumerate}
 
 
@@ -69,6 +87,11 @@ How did you decide which models to use to produce the final predictions?  Do you
 		\subitem
 		I cherry picked the best performing models based on the results of the testing script.
 		Due to the nature of k-folds, the training and testing assignments are fully random.
+	\item Gaussian Naive Bayes
+	    \subitem
+	    After finding out which standardization to use, it was simple to keep the model I have since it perform the best through different test runs.
+	    I ran different models and recorded their best recall, precision, F1 and AUC scores from the scripted provided by the TAs.
+	    In order to do this, I have to use KFolds and hold back some data for validation.
 
 \end{enumerate}
 
@@ -78,5 +101,25 @@ Do you have any internal evaluation results you want to report?
 
 Our results do not seem realistic.
 It seems that some data pre-processing is needed to prepare the dataset before it is fed into a NN or CNN.
+
+The result from the Gaussian Naive Bayes with a kFolds = 20:
+\begin{center}
+    \begin{tabular}{||c || c c c c||}
+        \hline
+        Data & Precision & Recall & F1 & AUC \\ [0.5ex] 
+        \hline\hline
+        Group & 0.001 & 1.0 & 0.002 & 0.23 \\ 
+        \hline
+        Individual\_2 & 0.018 & 1.0 & 0.035 & 0.161 \\
+        \hline
+        Individual\_7 & 0.018 & 1.0 & 0.035 & 0.435 \\
+        \hline
+    \end{tabular}\par
+    \bigskip
+    Results of Gaussian Naive Bayes
+\end{center}
+As you can see from the chart, our Naive Bayes classifier did not preform well.
+However, an interesting note is that the AUC is higher for individual\_7 than the group data.
+However, the values is low that is not even better than a random guess.
 
 \end{document}
