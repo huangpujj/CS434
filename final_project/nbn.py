@@ -132,7 +132,7 @@ def main():
 
     normal_train_group = preprocessing.normalize(big_batch, norm='l2')
     normal_test_group = preprocessing.normalize(test_batch, norm='l2')
-    print test_batch[0] 
+    #print test_batch[0] 
     normal_train_in_1 = preprocessing.normalize(in_1, norm='l2')
     normal_test_in_1 = preprocessing.normalize(in_1_test_ft, norm='l2')
 
@@ -167,15 +167,15 @@ def main():
     #trans_goal = trans_goal.T
 
     alldata = np.append(scores,predicted_int.T,axis=1)
-    alldata[:,0] = alldata[:,0] / 100.00
+    #alldata[:,0] = alldata[:,0] / 100.00
     alldata = alldata[:,[0,2]]
 
     in_1_data = np.append(scores_1,predicted_int_1.T,axis=1)
-    in_1_data[:,0] = in_1_data[:,0] / 100.00
+    #in_1_data[:,0] = in_1_data[:,0] / 100.00
     in_1_data = in_1_data[:,[0,2]]
 
     in_2_data = np.append(scores_2,predicted_int_2.T,axis=1)
-    in_2_data[:,0] = in_2_data[:,0] / 100.00
+    #in_2_data[:,0] = in_2_data[:,0] / 100.00
     in_2_data = in_2_data[:,[0,2]]
 
     #print alldata
