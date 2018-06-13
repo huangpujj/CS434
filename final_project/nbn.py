@@ -57,38 +57,37 @@ def load_data(data_file, indice_file):
 
 
 def load_test_dataV2(path):
-    label = []
     array = []
     with open(path, 'rb') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',')
         for row in spamreader:
             num = 0
-            for i in range(7):
+            for i in range(7,14,1):
                 single = []
                 for j in range(8):
                     single.append(float(row[i+(7*j)]))
-                label.append(float(row[i+(7*8)]))
+                #label.append(float(row[i+(7*8)]))
                 array.append(single)
-    return np.array(array), np.array(label)
+    return np.array(array)
 
 def load_test_data(path):
-    label = []
+    #label = []
     array = []
     with open(path, 'rb') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',')
         for row in spamreader:
             single = []
-            num = 0
-            for i in range(7):
+            #num = 0
+            for i in xrange(7,14,1):
                 for j in range(8):
                     single.append(float(row[i+(7*j)]))
-                num += float(row[i+(7*8)])
-            if(num == 0):
-                label.append(0)
-            else:
-                label.append(1)
+                #num += float(row[i+(7*8)])
+            #if(num == 0):
+                #label.append(0)
+            #else:
+                #label.append(1)
             array.append(single)
-    return np.array(array), np.array(label)
+    return np.array(array)
 
 def sum_data(big_batch, size):
     train = []
@@ -125,15 +124,15 @@ def main():
     big_label = np.concatenate((c, d), axis=0)
 
     #Testing Data
-    test_batch, test_label = load_test_data("data/final_test/general/general_test_instances.csv")
-    in_1_test_ft, in_1_test_label = load_test_data("data/final_test/subject2/subject2_instances.csv")
-    in_2_test_ft, in_2_test_label = load_test_data("data/final_test/subject7/subject7_instances.csv")
+    test_batch = load_test_data("data/final_test/general/general_test_instances.csv")
+    in_1_test_ft = load_test_data("data/final_test/subject2/subject2_instances.csv")
+    in_2_test_ft = load_test_data("data/final_test/subject7/subject7_instances.csv")
     #train = sum_data(big_batch, window_size)
     #test = sum_data(test_batch, 7)
 
     normal_train_group = preprocessing.normalize(big_batch, norm='l2')
     normal_test_group = preprocessing.normalize(test_batch, norm='l2')
-    
+    #print test_batch[0] 
     normal_train_in_1 = preprocessing.normalize(in_1, norm='l2')
     normal_test_in_1 = preprocessing.normalize(in_1_test_ft, norm='l2')
 
@@ -164,19 +163,19 @@ def main():
     predicted_int_2 = np.array(predict_2.astype(float))[np.newaxis]
 
     #Changing 'test_label' to change the gold
-    trans_goal = np.array(in_2_test_label.astype(int))[np.newaxis]
-    trans_goal = trans_goal.T
+    #trans_goal = np.array(in_2_test_label.astype(int))[np.newaxis]
+    #trans_goal = trans_goal.T
 
     alldata = np.append(scores,predicted_int.T,axis=1)
-    alldata[:,0] = alldata[:,0] / 100.00
+    #alldata[:,0] = alldata[:,0] / 100.00
     alldata = alldata[:,[0,2]]
 
     in_1_data = np.append(scores_1,predicted_int_1.T,axis=1)
-    in_1_data[:,0] = in_1_data[:,0] / 100.00
+    #in_1_data[:,0] = in_1_data[:,0] / 100.00
     in_1_data = in_1_data[:,[0,2]]
 
     in_2_data = np.append(scores_2,predicted_int_2.T,axis=1)
-    in_2_data[:,0] = in_2_data[:,0] / 100.00
+    #in_2_data[:,0] = in_2_data[:,0] / 100.00
     in_2_data = in_2_data[:,[0,2]]
 
     #print alldata

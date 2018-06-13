@@ -281,9 +281,10 @@ test_data = []
 test_labels = []
 for i in range(1, len(os.listdir("./data/final_test/subject7/"))+1):
 	fname = "subject7_"+ str(i) + ".csv"
-	batch, label = load_data("./data/final_test/subject7/" + fname)
-	test_data.append(batch)
-	test_labels.append(label)
+	if os.path.isfile("./data/final_test/subject7/" + fname):
+		batch, label = load_data("./data/final_test/subject7/" + fname)
+		test_data.append(batch)
+		test_labels.append(label)
 
 test_data = np.array(test_data)
 test_labels = np.array(test_labels)
