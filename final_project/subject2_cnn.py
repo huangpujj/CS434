@@ -267,11 +267,11 @@ if not os.path.isfile("subject2.pt"):
 	print("\tPart2: Training model subject2.pt")
 	trainModel("subject2.pt", train_loader)
 '''
-if os.path.isfile("./results/subject2_model/subject2.pt"):
+if os.path.isfile("./results/subject2_model/subject1.pt"):
 	test_set = DiabetesDataset(test_data, test_labels)
 	validation_loader = DataLoader(dataset=test_set,
 							batch_size=batch_size,
 							shuffle=False,
 							num_workers=6)
-	print("\tPart 2: Running model subject2.pt")
-	run("./results/subject2_model/subject2.pt", validation_loader)
+	print("\tPart 2: Running model subject1.pt")
+	run("./results/subject2_model/subject1.pt", validation_loader)
