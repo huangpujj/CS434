@@ -1,3 +1,5 @@
+# general_nn.py line 224
+
 '''
 To Do
 
@@ -18,6 +20,7 @@ What's this about FAC? False positives/negatives counts? ROC? Not in Kansas anym
 
 # Using Lam's code as a base to read and unpack data
 import itertools
+import csv
 import numpy as np
 from sklearn.model_selection import KFold
 
@@ -74,6 +77,25 @@ def load_data(data_file, indice_file):
 	batch = np.array(batch)
 	return batch, labels
 
+def load_test_data(path):
+    #label = []
+    array = []
+    with open(path, 'rb') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',')
+        for row in spamreader:
+            single = []
+            #num = 0
+            for i in xrange(7,14,1):
+                for j in range(8):
+                    single.append(float(row[i+(7*j)]))
+                #num += float(row[i+(7*8)])
+            #if(num == 0):
+                #label.append(0)
+            #else:
+                #label.append(1)
+            array.append(single)
+    return np.array(array)
+
 def kFold(batch, labels):
 	kf = KFold(n_splits = k)
 	for train_index, test_index in kf.split(batch):
@@ -106,9 +128,7 @@ def gradient(w, f, o, lam = 0):
 	return g
 
 def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test, w):
-	#f = open("gradient_descent.csv", 'w+')
 	print("Iteration\tTraining Accuracy\tTest Accuracy")
-	#f.write("Iteration,Training Accuracy,Test Accuracy\n")
 	
 	for i in range(1, itr):
 		#print(g)
@@ -127,11 +147,17 @@ def check(w, f, expected):  # Check predicted values agaist the correct value co
 	for i in range(0, f.shape[0]):
 		y_hat = sigmoid(w, f[i])
 		out.write(str(y_hat) + ',' + str(np.round(y_hat)) + '\n')
-		# This slight boost seems to increase accuracy - why?
-		if np.round(y_hat+0.000001) == expected[i]:
+		if np.round(y_hat) == expected[i]:
 			correct += 1
 	out.close()
 	return float(correct) / float(f.shape[0])   # Ratio expresses this weight's accuracy
+
+def run_model(w, f, filename):
+	out = open(filename, 'w')
+	for i in range(0, f.shape[0]):
+		y_hat = sigmoid(w, f[i])
+		out.write(str(y_hat) + ',' + str(int(np.round(y_hat))) + '\n')
+	out.close()
 
 def print_data(train_data, train_labels, test_data, test_labels):
 	print "Training Data"
@@ -161,17 +187,34 @@ train_data, train_labels, test_data, test_labels = kFold(s2_batch, s2_label)
 w = batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels, w)
 # Save the weights so they can be applied to another set of data
 
-# K, the data is reading correctly... Noting a discrepency in loaded data numbers, ~50 in the x
-#print_data(train_data, train_labels, test_data, test_labels)
-
 print("\nSubject 7")
 s7_batch, s7_label = load_data('./data/part1/Subject_7_part1.csv', './data/part1/list_7_part1.csv')
 train_data, train_labels, test_data, test_labels = kFold(s7_batch, s7_label)
 individual_model = batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels, w)
 
-# Call check function with weights and features to apply the model
+with open("Subject_7_gold.csv", 'w') as file:
+	for i in test_labels:
+		file.write(str(int(i)) + '\n')
+	
+run_model(individual_model, test_data, "Subject_7_pred.csv")
 
-''' General Population Test Code '''
+s2_batch, s2_label = load_data('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
+train_data, train_labels, test_data, test_labels = kFold(s2_batch, s2_label)
+
+with open("Subject_2_gold.csv", 'w') as file:
+	for i in test_labels:
+		file.write(str(int(i)) + '\n')
+	
+run_model(individual_model, test_data, "Subject_2_pred.csv")
+
+''' Test Code for individuals '''
+test_batch = load_test_data("data/final_test/subject2/subject2_instances.csv")
+run_model(individual_model, test_batch, "results/individual1_pred3.csv")
+
+test_batch = load_test_data("data/final_test/subject7/subject7_instances.csv")
+run_model(individual_model, test_batch, "results/individual2_pred3.csv")
+
+''' General Population Training Code '''
 w = np.zeros(56, dtype=float)                      # Initialize w = [0, ...0]
 learning_rate = 0.000000000000001				   # e-15
 
@@ -195,3 +238,7 @@ print("\nSubject 9")
 s9_batch, s9_label = load_data('./data/part2/Subject_9.csv', './data/part2/list_9.csv')
 train_data, train_labels, test_data, test_labels = kFold(s9_batch, s9_label)
 general_population_model = batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels, w)
+
+''' General Population Test Code '''
+test_batch = load_test_data("data/final_test/general/general_test_instances.csv")
+run_model(general_population_model, test_batch, "results/general_pred3.csv")
