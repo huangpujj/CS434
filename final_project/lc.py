@@ -101,24 +101,24 @@ def gradient(w, f, o, lam = 0):
 		y_hat = sigmoid(w, f[i])                # Iterate over all features in each row
 		if lam != 0:                            # If there is a lamda value then we're doing regularization for Part 2.3
 			y_hat = y_hat + (lam * np.linalg.norm(w, 2))
-		#grad = g + ((float(o[i]) - y_hat) * f[i])  # Reversed on slides, does't work for y_hat - o[i]
+		#g = g + ((float(o[i]) - y_hat) * f[i])  # Reversed on slides, does't work for y_hat - o[i]
 		g = g + ((y_hat - float(o[i])) * f[i])
 	return g
 
 def batch_gradient_descent(itr, learning_rate, f_train, o_train, f_test, o_test, w):
-	f = open("gradient_descent.csv", 'w+')
+	#f = open("gradient_descent.csv", 'w+')
 	print("Iteration\tTraining Accuracy\tTest Accuracy")
-	f.write("Iteration,Training Accuracy,Test Accuracy\n")
+	#f.write("Iteration,Training Accuracy,Test Accuracy\n")
 	
 	for i in range(1, itr):
 		#print(g)
 		g = gradient(w, f_train, o_train)
 		w = w - (learning_rate * g)
-		#print(g)
+		#print(w)
 		print(str(i) + "\t" + str(check(w, f_train, o_train)) + "\t" + str(check(w, f_test, o_test)))
-		f.write(str(i) + "," + str(check(w, f_train, o_train)) + "," + str(check(w, f_test, o_test)) + "\n")
+		#f.write(str(i) + "," + str(check(w, f_train, o_train)) + "," + str(check(w, f_test, o_test)) + "\n")
 	
-	f.close()
+	#f.close()
 	return w
 
 def check(w, f, expected):  # Check predicted values agaist the correct value column and take the ratio of correct / total
@@ -151,7 +151,7 @@ def print_data(train_data, train_labels, test_data, test_labels):
 
 ''' Individual Test Code '''	# It's messy, deal with it.
 itr = 10
-learning_rate = 0.00000000000001	# must be very low
+learning_rate = 0.00000000000001					# must be very low, e-14?
 w = np.zeros(56, dtype=float)                      # Initialize w = [0, ...0]
 
 print("Individual Model\n")
@@ -173,6 +173,7 @@ individual_model = batch_gradient_descent(itr, learning_rate, train_data, train_
 
 ''' General Population Test Code '''
 w = np.zeros(56, dtype=float)                      # Initialize w = [0, ...0]
+learning_rate = 0.000000000000001				   # e-15
 
 print("\nGeneral Population\n")
 print("Subject 1")
