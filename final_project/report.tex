@@ -1,0 +1,82 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath}
+\usepackage{graphicx}
+%\usepackage[colorinlistoftodos]{todonotes}
+
+\title{CS434 Final Project Report (3-page limit)}
+\author{Kin-Ho Lam, Donald Elkins, Kien Tran}
+\date{}
+\begin{document}
+\maketitle
+\section{Feature formulation and preprocessing}
+\subsection{Features} What are the features you feed to your learning algorithm? Did you simply flatten the 7 rows into a vector for features? Did you transform or aggregate the given data to engineer your own features?
+
+
+
+Given a window size of 7 events, where each event contains a value for glucose, slope, IOB, MOB, morning, afternoon, and night, we flattened the features into a 56-long vector.
+The last event's hypo value is used as the class label for that set of data.
+In the CNN model for subject 2, I converted the flattened data into a 7x8 matrix.
+
+\subsection{Preprocessing}
+Did you pre-process your data in any way? This can be for the purpose of reducing dimension, or reducing noise, or balancing the class distribution. Be clear about what you exactly did. The criterion is to allow others to replicate your works.
+
+We did not pre-process the data.
+Given the poor results from our NN and CNN models, one can presume that some pre-processing is necessary to add more distinction between classes or remove noise.
+
+
+\section{Learning algorithms}
+\subsection{Algorithms explored}
+Provide a list of learning algorithms that you explored for this project. For each algorithm, briefly justify your rationale for choosing this algorithm.
+
+\begin{enumerate}
+	\item 1 and 2 layer Neural Network
+		\subitem
+		I created a neural network model using pytorch for a general and subject 1 model.
+		I chose to experiment with a neural network model for general and subject 1 because I have had past success with creating models for non-linearly separable data.
+		It is clear from my results these models over-fit the training data, as both had very high AUC and precision values but does not produce realistic results in the final test data.
+
+	\item 1 layer Convolution Neural Network
+		\subitem
+		I created a CNN model using pytorch for subject 2.
+		I chose to experiment with a CNN because I wasn't producing good results from a NN model.
+		It is clear from my results that I am either doing something wrong, my data format is not appropriate for a CNN, or models over-fit the training data, as both had very high AUC and precision values but does not produce realistic results in the final test data.
+\end{enumerate}
+
+
+\subsection{Final models}
+What are the final models that produced your submitted test predictions?
+\begin{enumerate}
+	\item 1 and 2 layer Neural Network
+	\item Single layer Convolution Neural Network
+\end{enumerate}
+
+\section{Parameter Tuning and Model Selection }
+\subsection{Parameter Tuning}
+What parameters did you tune for your models? How do you perform the parameter tuning?
+\begin{enumerate}
+	\item NN and CNN
+		\subitem
+		I tuned the learning rate, epoch, batch size, and number of neurons in each layer/hidden layer/convoluted layer.
+		I also adjusted the kernel size, loss function, and optimizer function.
+\end{enumerate}
+
+
+\subsection{Model selection}
+How did you decide which models to use to produce the final predictions?  Do you use cross-validation or hold-out for model selection? When you split the data for validation, is it fully random or special consideration went into forming the folds? What criterion is used to select the models?
+
+\begin{enumerate}
+	\item NN and CNN
+		\subitem
+		I cherry picked the best performing models based on the results of the testing script.
+		Due to the nature of k-folds, the training and testing assignments are fully random.
+
+\end{enumerate}
+
+\section{Results}
+Do you have any internal evaluation results you want to report?
+
+
+Our results do not seem realistic.
+It seems that some data pre-processing is needed to prepare the dataset before it is fed into a NN or CNN.
+
+\end{document}
