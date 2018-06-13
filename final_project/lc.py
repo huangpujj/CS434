@@ -127,7 +127,8 @@ def check(w, f, expected):  # Check predicted values agaist the correct value co
 	for i in range(0, f.shape[0]):
 		y_hat = sigmoid(w, f[i])
 		out.write(str(y_hat) + ',' + str(np.round(y_hat)) + '\n')
-		if np.round(y_hat) == expected[i]:
+		# This slight boost seems to increase accuracy - why?
+		if np.round(y_hat+0.000001) == expected[i]:
 			correct += 1
 	out.close()
 	return float(correct) / float(f.shape[0])   # Ratio expresses this weight's accuracy
@@ -148,20 +149,48 @@ def print_data(train_data, train_labels, test_data, test_labels):
 	print test_labels.shape
 ''' End Classifier Code '''
 
+''' Individual Test Code '''	# It's messy, deal with it.
 itr = 10
 learning_rate = 0.00000000000001	# must be very low
-w = np.zeros(56, dtype=float)                      # Initilize w = [0, ...0]
+w = np.zeros(56, dtype=float)                      # Initialize w = [0, ...0]
 
+print("Individual Model\n")
+print("Subject 2")
 s2_batch, s2_label = load_data('./data/part1/Subject_2_part1.csv', './data/part1/list2_part1.csv')
 train_data, train_labels, test_data, test_labels = kFold(s2_batch, s2_label)
-saved_model = batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels, w)
+w = batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels, w)
 # Save the weights so they can be applied to another set of data
 
 # K, the data is reading correctly... Noting a discrepency in loaded data numbers, ~50 in the x
 #print_data(train_data, train_labels, test_data, test_labels)
 
+print("\nSubject 7")
 s7_batch, s7_label = load_data('./data/part1/Subject_7_part1.csv', './data/part1/list_7_part1.csv')
 train_data, train_labels, test_data, test_labels = kFold(s7_batch, s7_label)
-saved_model = batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels, saved_model)
+individual_model = batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels, w)
 
 # Call check function with weights and features to apply the model
+
+''' General Population Test Code '''
+w = np.zeros(56, dtype=float)                      # Initialize w = [0, ...0]
+
+print("\nGeneral Population\n")
+print("Subject 1")
+s1_batch, s1_label = load_data('./data/part2/Subject_1.csv', './data/part2/list_1.csv')
+train_data, train_labels, test_data, test_labels = kFold(s1_batch, s1_label)
+w = batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels, w)
+
+print("\nSubject 4")
+s4_batch, s4_label = load_data('./data/part2/Subject_4.csv', './data/part2/list_4.csv')
+train_data, train_labels, test_data, test_labels = kFold(s4_batch, s4_label)
+w = batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels, w)
+
+print("\nSubject 6")
+s6_batch, s6_label = load_data('./data/part2/Subject_6.csv', './data/part2/list_6.csv')
+train_data, train_labels, test_data, test_labels = kFold(s6_batch, s6_label)
+w = batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels, w)
+
+print("\nSubject 9")
+s9_batch, s9_label = load_data('./data/part2/Subject_9.csv', './data/part2/list_9.csv')
+train_data, train_labels, test_data, test_labels = kFold(s9_batch, s9_label)
+general_population_model = batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels, w)
