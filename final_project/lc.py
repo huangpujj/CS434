@@ -104,7 +104,6 @@ def kFold(batch, labels):
 		y_train, y_test = labels[train_index], labels[test_index]
 
 	return X_train, y_train, X_test, y_test
-
 ''' End of Parsing Code '''
 
 ''' Classifier Code '''
@@ -175,7 +174,7 @@ def print_data(train_data, train_labels, test_data, test_labels):
 	print test_labels.shape
 ''' End Classifier Code '''
 
-''' Individual Test Code '''	# It's messy, deal with it.
+''' Individual Training Code '''	# It's messy, deal with it.
 itr = 10
 learning_rate = 0.00000000000001					# must be very low, e-14?
 w = np.zeros(56, dtype=float)                      # Initialize w = [0, ...0]
@@ -207,7 +206,7 @@ with open("Subject_2_gold.csv", 'w') as file:
 	
 run_model(individual_model, test_data, "Subject_2_pred.csv")
 
-''' Test Code for individuals '''
+''' Individual Test Code '''
 test_batch = load_test_data("data/final_test/subject2/subject2_instances.csv")
 run_model(individual_model, test_batch, "results/individual1_pred3.csv")
 
@@ -234,10 +233,24 @@ s6_batch, s6_label = load_data('./data/part2/Subject_6.csv', './data/part2/list_
 train_data, train_labels, test_data, test_labels = kFold(s6_batch, s6_label)
 w = batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels, w)
 
+with open("Subject_6_gold.csv", 'w') as file:
+	for i in test_labels:
+		#print(i)
+		file.write(str(int(i)) + '\n')
+		
+run_model(w, test_data, "Subject_6_pred.csv")
+
 print("\nSubject 9")
 s9_batch, s9_label = load_data('./data/part2/Subject_9.csv', './data/part2/list_9.csv')
 train_data, train_labels, test_data, test_labels = kFold(s9_batch, s9_label)
 general_population_model = batch_gradient_descent(itr, learning_rate, train_data, train_labels, test_data, test_labels, w)
+
+with open("Subject_9_gold.csv", 'w') as file:
+	for i in test_labels:
+		#print(i)
+		file.write(str(int(i)) + '\n')
+		
+run_model(w, test_data, "Subject_9_pred.csv")
 
 ''' General Population Test Code '''
 test_batch = load_test_data("data/final_test/general/general_test_instances.csv")

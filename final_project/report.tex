@@ -52,6 +52,10 @@ Provide a list of learning algorithms that you explored for this project. For ea
 	    Another reason is how fast naive Bayes takes to train and run.
 	    Due to their low computational complexity, using a Bayes to train multiple models and adjusting for variations is simpler.
 	    Looking back now, realizing that we are using a flatten vector array of 56 features, it would be better to assume that some variables do relate to one another and try to using a different classifier based off that.
+	    
+	 \item Batch Gradient Descent Linear Classifier
+	    \subitem
+	    The relatively low number of features per instance in this dataset made a linear classifier via gradient-descent appear to be a feasible learning algorithm. The math is (supposedly) simple and straightforward and the weights generated from the training phase can be saved and applied to other datasets as a model. I did, unfortunately, run into significant issues with normalization and rounding which ended up undermining the model's effectiveness.
 \end{enumerate}
 
 
@@ -61,6 +65,7 @@ What are the final models that produced your submitted test predictions?
 	\item 1 and 2 layer Neural Network
 	\item Single layer Convolution Neural Network
 	\item Gaussian Naive Bayes
+	\item Batch Gradient Descent Linear Classifier
 \end{enumerate}
 
 \section{Parameter Tuning and Model Selection }
@@ -76,6 +81,10 @@ What parameters did you tune for your models? How do you perform the parameter t
 	    \subitem
 	    I was able to tune the weight of the Bayesian network as well as what standardization to use when standardizing the data.
 	    The weights would play a key roll in controlling the response variable and standardizing the weights helps keep one variable from overpowering the others.
+	    
+	 \item Batch Gradient Descent
+	   \subitem
+	   I performed hand tuning of the learning rates, number of iterations (epochs), and the k-fold values to try to get optimum learning rates and accuracy.
 \end{enumerate}
 
 
@@ -92,6 +101,9 @@ How did you decide which models to use to produce the final predictions?  Do you
 	    After finding out which standardization to use, it was simple to keep the model I have since it perform the best through different test runs.
 	    I ran different models and recorded their best recall, precision, F1 and AUC scores from the scripted provided by the TAs.
 	    In order to do this, I have to use KFolds and hold back some data for validation.
+	 \item Batch Gradient Descent
+	    \subitem
+	    The choice essentially came down to semi decent test runs that I was getting with my algorithm. I was unable to troubleshoot my sigmoid normalization which kneecapped the program. There was k-folds and cross-validation, so I'd like to think that the classifier (if the sigmoid and normalization were working properly and there weren't weird arithmetic errors I couldn't catch) is quite robust.
 
 \end{enumerate}
 
@@ -121,5 +133,7 @@ The result from the Gaussian Naive Bayes with a kFolds = 20:
 As you can see from the chart, our Naive Bayes classifier did not preform well.
 However, an interesting note is that the AUC is higher for individual\_7 than the group data.
 However, the values is low that is not even better than a random guess.
+
+The results from the batch gradient descent algorithm were also poor, as referenced above. I was able to reach relatively high precision and AUC, but recall and F1 were consistently 0, which indicates to me that the algorithm failed. This is consistent with what I was seeing from output files where the script was unable to classify anything as 1 because of the rounding and normalization errors. The accuracy should still be relatively high, but this is only because at the current moment the script effectively classifies everything as negative (and thus adheres to the general statistical trend of the data).
 
 \end{document}
